@@ -785,6 +785,25 @@ select {
 	}
 
 }
+#asset-browser {
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	height: 150px;
+	background: #222;
+	overflow: auto;
+	border-top: 1px solid #444;
+	padding: 10px;
+	color: white;
+	z-index: 10; /* Make sure it's above the canvas */
+}
+
+.asset-grid {
+	display: flex;
+	gap: 10px;
+	flex-wrap: wrap;
+}
 
 /* Temporary Chrome fix (#24794) */
 

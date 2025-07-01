@@ -73,6 +73,7 @@
 			import { Sidebar } from './js/Sidebar.js';
 			import { Menubar } from './js/Menubar.js';
 			import { Resizer } from './js/Resizer.js';
+			import { AssetBrowser } from './js/AssetBrowser.js';
 			// import AssetBrowser from './js/AssetBrowser.js';
 			
 
@@ -110,6 +111,10 @@
 			//document.body.appendChild( assetBrowser.dom );
 
 			//
+			
+
+				const assetBrowser = new AssetBrowser(editor);
+				document.body.appendChild(assetBrowser.dom);
 
 			editor.storage.init( function () {
 

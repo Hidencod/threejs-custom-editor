@@ -44,6 +44,7 @@ function Resizer( editor ) {
 		document.getElementById( 'player' ).style.right = x + 'px';
 		document.getElementById( 'script' ).style.right = x + 'px';
 		document.getElementById( 'viewport' ).style.right = x + 'px';
+		document.getElementById( 'asset-browser' ).style.right = x + 'px';
 
 		signals.windowResize.dispatch();
 

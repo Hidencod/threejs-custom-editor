@@ -213,6 +213,37 @@ class UISpan extends UIElement {
 
 }
 
+class UIImage extends UIElement {
+
+	constructor( src ) {
+		const dom = document.createElement( 'img' );
+		dom.src = src;
+		super( dom );
+	}
+
+	setSrc( src ) {
+		this.dom.src = src;
+		return this;
+	}
+
+	setAlt( alt ) {
+		this.dom.alt = alt;
+		return this;
+	}
+
+	setWidth( value ) {
+		this.dom.style.width = value;
+		return this;
+	}
+
+	setHeight( value ) {
+		this.dom.style.height = value;
+		return this;
+	}
+}
+
+
+
 class UIDiv extends UIElement {
 
 	constructor() {
@@ -1343,4 +1374,4 @@ class ListboxItem extends UIDiv {
 
 }
 
-export { UIElement, UISpan, UIDiv, UIRow, UIPanel, UIText, UIInput, UITextArea, UISelect, UICheckbox, UIColor, UINumber, UIInteger, UIBreak, UIHorizontalRule, UIButton, UIProgress, UITabbedPanel, UIListbox, ListboxItem };
+export { UIElement, UISpan, UIDiv, UIRow, UIPanel, UIText, UIInput, UITextArea, UISelect, UICheckbox, UIColor, UINumber, UIInteger, UIBreak, UIHorizontalRule, UIButton, UIProgress, UITabbedPanel, UIListbox, ListboxItem,UIImage };
