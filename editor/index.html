@@ -73,6 +73,7 @@
 			import { Sidebar } from './js/Sidebar.js';
 			import { Menubar } from './js/Menubar.js';
 			import { Resizer } from './js/Resizer.js';
+			import AssetBrowser from './js/AssetBrowser.js';
 			
 
 			window.URL = window.URL || window.webkitURL;
@@ -105,6 +106,8 @@
 
 			const resizer = new Resizer( editor );
 			document.body.appendChild( resizer.dom );
+			const assetBrowser = new AssetBrowser(editor);
+			//document.body.appendChild( assetBrowser.dom );
 
 			//
 
