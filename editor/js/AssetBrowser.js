@@ -2,16 +2,90 @@
 
 class AssetBrowser {
     constructor(editor) {
-        this.editor = editor;
-        this.assets = new Map();
-        this.selectedAssets = new Set();
-        this.currentFolder = 'Assets';
-        this.folders = new Map();
+    this.editor = editor;
+    this.folders = [
+        { path: 'Assets', name: 'Assets', children: [], expanded: true }
+    ];
+    this.currentFolder = 'Assets';
+    this.assets = [
+        { id: '1', name: 'Cube.gltf', type: 'model', folder: 'Assets' },
+        { id: '2', name: 'Texture.png', type: 'texture', folder: 'Assets' },
+        { id: '3', name: 'Material.mat', type: 'material', folder: 'Assets' }
+    ];
+    this.renamingAssetId = null;
+    this.folderContextMenu = null;
+    this.assetContextMenu = null;
+    this.defaultHeight = 300;
+    this.minHeight = 120;
+    this.maxHeight = 600;
+    
+    // Inject CSS for layout fixes
+    this.injectCSS();
+    
+    this.container = new UIPanel();
+    this.container.setId('ui-asset-browser');
+    this.container.setDisplay('none');
+    this.container.setStyle('position', ['fixed']);
+    this.container.setStyle('left', ['0']);
+    this.container.setStyle('right', ['0']);
+    this.container.setStyle('bottom', ['0']);
+    this.container.setStyle('width', ['100vw']);
+    this.container.setStyle('height', [this.defaultHeight + 'px']);
+    this.container.setStyle('background', ['#222']);
+    this.container.setStyle('z-index', ['1000']);
+    this.container.setStyle('overflow', ['hidden']);
+    this.container.setStyle('font-family', ['Segoe UI, Arial, sans-serif']);
+    
+    this.createResizeHandle();
+    this.createHeader();
+    this.createMainContent();
+    document.body.appendChild(this.container.dom);
+    document.addEventListener('click', () => { this.hideFolderContextMenu(); this.hideAssetContextMenu(); });
+}
+
+injectCSS() {
+    if (document.getElementById('asset-browser-styles')) return;
+    
+    const style = document.createElement('style');
+    style.id = 'asset-browser-styles';
+    style.textContent = `
+        :root {
+            --asset-browser-height: 0px;
+        }
         
-        this.init();
-        this.setupEventListeners();
-        this.loadDefaultFolders();
-    }
+        body.asset-browser-open {
+            padding-bottom: var(--asset-browser-height);
+            transition: padding-bottom 0.3s ease;
+        }
+        
+        canvas {
+            max-height: calc(100vh - var(--asset-browser-height) - 50px);
+        }
+        
+        #ui-asset-browser {
+            position: fixed !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            z-index: 1000 !important;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+show() {
+    this.container.setDisplay('block');
+    document.body.classList.add('asset-browser-open');
+    this.updateMainUILayout(this.defaultHeight);
+}
+
+hide() {
+    this.container.setDisplay('none');
+    document.body.classList.remove('asset-browser-open');
+    document.body.style.paddingBottom = '0';
+    document.documentElement.style.setProperty('--asset-browser-height', '0px');
+}
 
     init() {
         // Create main container
