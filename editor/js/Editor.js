@@ -14,7 +14,8 @@ _DEFAULT_CAMERA.position.set( 0, 5, 10 );
 _DEFAULT_CAMERA.lookAt( new THREE.Vector3() );
 
 function Editor() {
-	BootAnimation();
+	BootAnimation.show('startup');
+	BootAnimation.setProgress(5, 'Initializing Three.js Engine...');
 	const Signal = signals.Signal; // eslint-disable-line no-undef
 
 	this.signals = {
@@ -98,41 +99,46 @@ function Editor() {
 	};
 
 	this.config = new Config();
+	BootAnimation.setProgress(15, 'Loading Config...');
 	this.history = new _History( this );
+	BootAnimation.setProgress(25, 'Loading History...');
 	this.selector = new Selector( this );
+	BootAnimation.setProgress(35, 'Loading Selector...');
 	this.storage = new _Storage();
+	BootAnimation.setProgress(45, 'Loading Storage...');
 	this.strings = new Strings( this.config );
+	BootAnimation.setProgress(55, 'Loading Strings...');
 
 	this.loader = new Loader( this );
+	BootAnimation.setProgress(65, 'Loading Loader...');
 
 	this.camera = _DEFAULT_CAMERA.clone();
+	BootAnimation.setProgress(70, 'Setting up Camera...');
 
 	this.scene = new THREE.Scene();
 	this.scene.name = 'Scene';
+	BootAnimation.setProgress(75, 'Setting up Scene...');
 
 	this.sceneHelpers = new THREE.Scene();
 	this.sceneHelpers.add( new THREE.HemisphereLight( 0xffffff, 0x888888, 2 ) );
+	BootAnimation.setProgress(80, 'Setting up Scene Helpers...');
 
 	this.object = {};
 	this.geometries = {};
 	this.materials = {};
 	this.textures = {};
 	this.scripts = {};
+	BootAnimation.setProgress(85, 'Setting up Data Structures...');
 
 	this.materialsRefCounter = new Map(); // tracks how often is a material used by a 3D object
-
 	this.mixer = new THREE.AnimationMixer( this.scene );
-
 	this.selected = null;
 	this.helpers = {};
-
 	this.cameras = {};
-
 	this.viewportCamera = this.camera;
 	this.viewportShading = 'default';
-
 	this.addCamera( this.camera );
-
+	BootAnimation.setProgress(90, 'Finalizing Editor...');
 }
 
 Editor.prototype = {

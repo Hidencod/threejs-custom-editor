@@ -124,6 +124,12 @@
 
 					}
 
+					// Hide boot animation when ready
+					import('./js/BootAnimation.js').then(({ BootAnimation }) => {
+						BootAnimation.setProgress(100, 'Ready!');
+						setTimeout(() => BootAnimation.hide(), 300);
+					});
+
 				} );
 
 				//

@@ -8,6 +8,8 @@ import { LoaderUtils } from './LoaderUtils.js';
 
 import { unzipSync, strFromU8 } from 'three/addons/libs/fflate.module.js';
 
+import { BootAnimation } from './BootAnimation.js';
+
 function Loader( editor ) {
 
 	const scope = this;
@@ -30,6 +32,12 @@ function Loader( editor ) {
 
 			filesMap = filesMap || LoaderUtils.createFilesMap( files );
 
+			// Show asset loading popup if more than one file
+			if (files.length > 1) {
+				BootAnimation.show('asset');
+				BootAnimation.setProgress(0, 'Preparing to load assets...');
+			}
+
 			const manager = new THREE.LoadingManager();
 			manager.setURLModifier( function ( url ) {
 
@@ -51,9 +59,20 @@ function Loader( editor ) {
 
 			manager.addHandler( /\.tga$/i, new TGALoader() );
 
+			let loadedCount = 0;
+			const totalFiles = files.length;
+
 			for ( let i = 0; i < files.length; i ++ ) {
 
-				scope.loadFile( files[ i ], manager );
+				scope.loadFile( files[ i ], manager, function(filename) {
+					loadedCount++;
+					const percent = Math.round((loadedCount / totalFiles) * 100);
+					BootAnimation.setProgress(percent, `Loaded ${filename} (${loadedCount}/${totalFiles})`);
+					// Hide popup after all files loaded
+					if (loadedCount === totalFiles && totalFiles > 1) {
+						setTimeout(() => BootAnimation.hide(), 400);
+					}
+				});
 
 			}
 
@@ -61,7 +80,7 @@ function Loader( editor ) {
 
 	};
 
-	this.loadFile = function ( file, manager ) {
+	this.loadFile = function ( file, manager, onLoaded ) {
 
 		const filename = file.name;
 		const extension = filename.split( '.' ).pop().toLowerCase();
@@ -96,6 +115,8 @@ function Loader( editor ) {
 
 						editor.execute( new AddObjectCommand( editor, object ) );
 
+						if (onLoaded) onLoaded(filename);
+
 					}, function ( error ) {
 
 						console.error( error );
@@ -122,6 +143,8 @@ function Loader( editor ) {
 
 					editor.execute( new AddObjectCommand( editor, object ) );
 
+					if (onLoaded) onLoaded(filename);
+
 				}, false );
 				reader.readAsArrayBuffer( file );
 
@@ -142,6 +165,8 @@ function Loader( editor ) {
 
 					editor.execute( new AddObjectCommand( editor, object ) );
 
+					if (onLoaded) onLoaded(filename);
+
 				}, false );
 				reader.readAsArrayBuffer( file );
 
@@ -161,6 +186,8 @@ function Loader( editor ) {
 					const amfobject = loader.parse( event.target.result );
 
 					editor.execute( new AddObjectCommand( editor, amfobject ) );
+
+					if (onLoaded) onLoaded(filename);
 
 				}, false );
 				reader.readAsArrayBuffer( file );
@@ -185,6 +212,8 @@ function Loader( editor ) {
 					collada.scene.name = filename;
 
 					editor.execute( new AddObjectCommand( editor, collada.scene ) );
+
+					if (onLoaded) onLoaded(filename);
 
 				}, false );
 				reader.readAsText( file );
@@ -229,6 +258,8 @@ function Loader( editor ) {
 						loader.dispose();
 						editor.execute( new AddObjectCommand( editor, object ) );
 
+						if (onLoaded) onLoaded(filename);
+
 					} );
 
 				}, false );
@@ -252,6 +283,8 @@ function Loader( editor ) {
 					const object = loader.parse( contents );
 
 					editor.execute( new AddObjectCommand( editor, object ) );
+
+					if (onLoaded) onLoaded(filename);
 
 				}, false );
 				reader.readAsArrayBuffer( file );
@@ -280,6 +313,8 @@ function Loader( editor ) {
 
 						loader.dracoLoader.dispose();
 						loader.ktx2Loader.dispose();
+
+						if (onLoaded) onLoaded(filename);
 
 					} );
 
@@ -310,6 +345,8 @@ function Loader( editor ) {
 
 						loader.dracoLoader.dispose();
 						loader.ktx2Loader.dispose();
+
+						if (onLoaded) onLoaded(filename);
 
 					} );
 
@@ -368,6 +405,8 @@ function Loader( editor ) {
 
 					handleJSON( data );
 
+					if (onLoaded) onLoaded(filename);
+
 				}, false );
 				reader.readAsText( file );
 
@@ -389,6 +428,8 @@ function Loader( editor ) {
 					collada.scene.name = filename;
 
 					editor.execute( new AddObjectCommand( editor, collada.scene ) );
+
+					if (onLoaded) onLoaded(filename);
 
 				}, false );
 				reader.readAsArrayBuffer( file );
@@ -415,6 +456,8 @@ function Loader( editor ) {
 						group.rotation.x = Math.PI;
 
 						editor.execute( new AddObjectCommand( editor, group ) );
+
+						if (onLoaded) onLoaded(filename);
 
 					} );
 
@@ -445,6 +488,8 @@ function Loader( editor ) {
 					mesh.animations.push( ...geometry.animations );
 					editor.execute( new AddObjectCommand( editor, mesh ) );
 
+					if (onLoaded) onLoaded(filename);
+
 				}, false );
 				reader.readAsArrayBuffer( file );
 
@@ -467,6 +512,8 @@ function Loader( editor ) {
 
 					editor.execute( new AddObjectCommand( editor, object ) );
 
+					if (onLoaded) onLoaded(filename);
+
 				}, false );
 				reader.readAsText( file );
 
@@ -488,6 +535,8 @@ function Loader( editor ) {
 					points.name = filename;
 
 					editor.execute( new AddObjectCommand( editor, points ) );
+
+					if (onLoaded) onLoaded(filename);
 
 				}, false );
 				reader.readAsArrayBuffer( file );
@@ -528,6 +577,8 @@ function Loader( editor ) {
 
 					editor.execute( new AddObjectCommand( editor, object ) );
 
+					if (onLoaded) onLoaded(filename);
+
 				}, false );
 				reader.readAsArrayBuffer( file );
 
@@ -552,6 +603,8 @@ function Loader( editor ) {
 					mesh.name = filename;
 
 					editor.execute( new AddObjectCommand( editor, mesh ) );
+
+					if (onLoaded) onLoaded(filename);
 
 				}, false );
 
@@ -615,6 +668,8 @@ function Loader( editor ) {
 
 					editor.execute( new AddObjectCommand( editor, group ) );
 
+					if (onLoaded) onLoaded(filename);
+
 				}, false );
 				reader.readAsText( file );
 
@@ -636,6 +691,8 @@ function Loader( editor ) {
 					group.name = filename;
 
 					editor.execute( new AddObjectCommand( editor, group ) );
+
+					if (onLoaded) onLoaded(filename);
 
 				}, false );
 				reader.readAsArrayBuffer( file );
@@ -670,6 +727,8 @@ function Loader( editor ) {
 
 					editor.execute( new AddObjectCommand( editor, group ) );
 
+					if (onLoaded) onLoaded(filename);
+
 				}, false );
 				reader.readAsArrayBuffer( file );
 
@@ -696,6 +755,8 @@ function Loader( editor ) {
 
 					editor.execute( new AddObjectCommand( editor, mesh ) );
 
+					if (onLoaded) onLoaded(filename);
+
 				}, false );
 				reader.readAsArrayBuffer( file );
 
@@ -716,6 +777,8 @@ function Loader( editor ) {
 					const result = new VRMLLoader().parse( contents );
 
 					editor.execute( new AddObjectCommand( editor, result ) );
+
+					if (onLoaded) onLoaded(filename);
 
 				}, false );
 				reader.readAsText( file );
@@ -743,6 +806,8 @@ function Loader( editor ) {
 					points.name = filename;
 
 					editor.execute( new AddObjectCommand( editor, points ) );
+
+					if (onLoaded) onLoaded(filename);
 
 				}, false );
 				reader.readAsText( file );
