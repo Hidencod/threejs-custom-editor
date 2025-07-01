@@ -11,7 +11,10 @@
 	</head>
 	<body>
 		<link rel="stylesheet" href="css/main.css">
-
+		<script src="js/BootAnimation.js"></script>
+		<script>
+			window.BootAnimation && window.BootAnimation.show('startup');
+		</script>
 		<script type="importmap">
 			{
 				"imports": {
@@ -70,6 +73,7 @@
 			import { Sidebar } from './js/Sidebar.js';
 			import { Menubar } from './js/Menubar.js';
 			import { Resizer } from './js/Resizer.js';
+			
 
 			window.URL = window.URL || window.webkitURL;
 			window.BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder;
@@ -125,10 +129,7 @@
 					}
 
 					// Hide boot animation when ready
-					import('./js/BootAnimation.js').then(({ BootAnimation }) => {
-						BootAnimation.setProgress(100, 'Ready!');
-						setTimeout(() => BootAnimation.hide(), 300);
-					});
+					if (window.BootAnimation) window.BootAnimation.hide();
 
 				} );
 

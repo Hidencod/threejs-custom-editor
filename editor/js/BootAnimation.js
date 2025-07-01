@@ -1,4 +1,5 @@
-const BootAnimation = (() => {
+(function() {
+  if (window.BootAnimation) return;
   let container, progress, statusText, mode;
   let showTimestamp = 0;
   const minShowTime = 1500;
@@ -127,63 +128,62 @@ const BootAnimation = (() => {
   }
 
   function create() {
-  injectStyles();
-  container = document.createElement("div");
-  container.className = "boot-container";
+    injectStyles();
+    container = document.createElement("div");
+    container.className = "boot-container";
 
-  if (mode === "startup") {
-    const logo = document.createElement("img");
-    logo.className = "boot-logo";
-    logo.src = "images/logo.png";
-    logo.alt = "MakeIt3D";
+    if (mode === "startup") {
+      const logo = document.createElement("img");
+      logo.className = "boot-logo";
+      logo.src = "images/logo.png";
+      logo.alt = "MakeIt3D";
 
-    const title = document.createElement("div");
-    title.className = "boot-title";
-    title.textContent = "Launching MakeIt3D Editor";
+      const title = document.createElement("div");
+      title.className = "boot-title";
+      title.textContent = "Launching MakeIt3D Editor";
 
-    const subtitle = document.createElement("div");
-    subtitle.className = "boot-subtitle";
-    subtitle.textContent = "Building your 3D space...";
+      const subtitle = document.createElement("div");
+      subtitle.className = "boot-subtitle";
+      subtitle.textContent = "Building your 3D space...";
 
-    container.appendChild(logo);
-    container.appendChild(title);
-    container.appendChild(subtitle);
+      container.appendChild(logo);
+      container.appendChild(title);
+      container.appendChild(subtitle);
 
-  } else if (mode === "asset") {
-    const popup = document.createElement("div");
-    popup.className = "boot-popup";
+    } else if (mode === "asset") {
+      const popup = document.createElement("div");
+      popup.className = "boot-popup";
 
-    const title = document.createElement("div");
-    title.className = "boot-title";
-    title.textContent = "Loading Assets";
+      const title = document.createElement("div");
+      title.className = "boot-title";
+      title.textContent = "Loading Assets";
 
-    const subtitle = document.createElement("div");
-    subtitle.className = "boot-subtitle";
-    subtitle.textContent = "Just a moment...";
+      const subtitle = document.createElement("div");
+      subtitle.className = "boot-subtitle";
+      subtitle.textContent = "Just a moment...";
 
-    const track = document.createElement("div");
-    track.className = "boot-progress-track";
+      const track = document.createElement("div");
+      track.className = "boot-progress-track";
 
-    progress = document.createElement("div");
-    progress.className = "boot-progress-bar";
-    track.appendChild(progress);
+      progress = document.createElement("div");
+      progress.className = "boot-progress-bar";
+      track.appendChild(progress);
 
-    statusText = document.createElement("div");
-    statusText.className = "boot-status";
-    statusText.textContent = "Loading...";
+      statusText = document.createElement("div");
+      statusText.className = "boot-status";
+      statusText.textContent = "Loading...";
 
-    popup.appendChild(title);
-    popup.appendChild(subtitle);
-    popup.appendChild(track);
-    popup.appendChild(statusText);
-    container.appendChild(popup);
+      popup.appendChild(title);
+      popup.appendChild(subtitle);
+      popup.appendChild(track);
+      popup.appendChild(statusText);
+      container.appendChild(popup);
+    }
+
+    document.body.appendChild(container);
+    setContainerStyle(); // ✅ <--- Make sure this is called
+    showTimestamp = Date.now();
   }
-
-  document.body.appendChild(container);
-  setContainerStyle(); // ✅ <--- Make sure this is called
-  showTimestamp = Date.now();
-}
-
 
   function setProgress(percent, text) {
     if (!container || !progress) return;
@@ -216,43 +216,41 @@ const BootAnimation = (() => {
     }
   }
 
- function setContainerStyle() {
-  if (!container) return;
+  function setContainerStyle() {
+    if (!container) return;
 
-  if (mode === 'asset')  {
-    // Asset loading popup — transparent background
-    container.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: transparent;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 10000;
-      flex-direction: column;
-      margin: 0;
-      padding: 0;
-      pointer-events: none;
-    `;
+    if (mode === 'asset')  {
+      // Asset loading popup — transparent background
+      container.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: transparent;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        flex-direction: column;
+        margin: 0;
+        padding: 0;
+        pointer-events: none;
+      `;
 
-    if (container.firstChild) {
-      const popup = container.firstChild;
-      popup.style.background = "rgba(15, 23, 42, 0.9)";
-      popup.style.backdropFilter = "blur(10px)";
-      popup.style.borderRadius = "12px";
-      popup.style.boxShadow = "0 10px 30px rgba(0,0,0,0.2)";
-      popup.style.pointerEvents = "auto";
-      popup.style.padding = "24px 16px";
-      popup.style.minWidth = "280px";
-      popup.style.minHeight = "120px";
+      if (container.firstChild) {
+        const popup = container.firstChild;
+        popup.style.background = "rgba(15, 23, 42, 0.9)";
+        popup.style.backdropFilter = "blur(10px)";
+        popup.style.borderRadius = "12px";
+        popup.style.boxShadow = "0 10px 30px rgba(0,0,0,0.2)";
+        popup.style.pointerEvents = "auto";
+        popup.style.padding = "24px 16px";
+        popup.style.minWidth = "280px";
+        popup.style.minHeight = "120px";
+      }
     }
   }
-}
 
-
-  return { show, hide, setProgress };
+  window.BootAnimation = { show, hide, setProgress };
 })();
-export { BootAnimation };

@@ -8,7 +8,7 @@ import { LoaderUtils } from './LoaderUtils.js';
 
 import { unzipSync, strFromU8 } from 'three/addons/libs/fflate.module.js';
 
-import { BootAnimation } from './BootAnimation.js';
+import { LoadingAnimation } from './LoadingAnimation.js';
 
 function Loader( editor ) {
 
@@ -32,11 +32,9 @@ function Loader( editor ) {
 
 			filesMap = filesMap || LoaderUtils.createFilesMap( files );
 
-			// Show asset loading popup if more than one file
-			if (files.length > 1) {
-				BootAnimation.show('asset');
-				BootAnimation.setProgress(0, 'Preparing to load assets...');
-			}
+			// Always show asset loading popup
+			LoadingAnimation.show('asset');
+			LoadingAnimation.setProgress(0, 'Preparing to load assets...');
 
 			const manager = new THREE.LoadingManager();
 			manager.setURLModifier( function ( url ) {
@@ -67,10 +65,10 @@ function Loader( editor ) {
 				scope.loadFile( files[ i ], manager, function(filename) {
 					loadedCount++;
 					const percent = Math.round((loadedCount / totalFiles) * 100);
-					BootAnimation.setProgress(percent, `Loaded ${filename} (${loadedCount}/${totalFiles})`);
+					LoadingAnimation.setProgress(percent, `Loaded ${filename} (${loadedCount}/${totalFiles})`);
 					// Hide popup after all files loaded
-					if (loadedCount === totalFiles && totalFiles > 1) {
-						setTimeout(() => BootAnimation.hide(), 400);
+					if (loadedCount === totalFiles) {
+						setTimeout(() => LoadingAnimation.hide(), 400);
 					}
 				});
 
