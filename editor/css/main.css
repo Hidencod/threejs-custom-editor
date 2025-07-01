@@ -1,3 +1,33 @@
+/* Add theme variables at the top */
+:root {
+  --bg-primary: #263238;
+  --bg-secondary: #37474f;
+  --text-primary: #ffffff;
+  --text-secondary: #b0bec5;
+  --accent-color: #00bcd4;
+  --border-color: #455a64;
+}
+
+[data-theme="light"] {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f5f5;
+  --text-primary: #212121;
+  --text-secondary: #757575;
+  --accent-color: #2196f3;
+  --border-color: #e0e0e0;
+}
+
+/* Update existing styles to use variables */
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+#menubar {
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+
 :root {
 	color-scheme: light dark;
 }
