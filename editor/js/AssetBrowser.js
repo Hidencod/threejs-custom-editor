@@ -31,9 +31,9 @@ function AssetBrowser(editor) {
         .setStyle('bottom', ['0'])
         .setStyle('left', ['0'])
         .setStyle('right', ['350px']) // Match sidebar width
-        .setStyle('height', ['250px']) // Start with a reasonable default height
-        .setStyle('minHeight', ['150px'])
-        .setStyle('maxHeight', ['500px'])
+       // .setStyle('height', ['250px']) // Start with a reasonable default height
+       // .setStyle('minHeight', ['150px'])
+       // .setStyle('maxHeight', ['500px'])
         .setStyle('background', ['#1a1a1a'])
         .setStyle('borderTop', ['1px solid #444'])
         .setStyle('borderRight', ['1px solid #444'])
@@ -676,11 +676,18 @@ function AssetBrowser(editor) {
     // Expand/Collapse functionality
     expandButton.onClick(() => {
         isExpanded = !isExpanded;
-        const newHeight = isExpanded ? '400px' : '250px';
-        currentHeight = isExpanded ? 400 : 250;
-        container.setStyle('height', [newHeight]);
-        expandButton.setValue(isExpanded ? '▼' : '▲');
+        const topPercent = isExpanded ? 0.7 : 0.9; // 40% top when expanded, 90% when collapsed
+        const top = window.innerHeight * topPercent;
+
+        container.setStyle('top', [`${top}px`]);
+        expandButton.setTextContent(isExpanded ? '▼' : '▲');
         expandButton.setStyle('transform', [isExpanded ? 'rotate(180deg)' : 'rotate(0deg)']);
+
+        // Optional: update viewport bottom if needed
+        const height = window.innerHeight - top;
+        document.getElementById('resizer2').style.bottom = `${height}px`;
+        document.getElementById('viewport').style.bottom = `${height}px`;
+        
     });
 
     // Search functionality

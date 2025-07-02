@@ -32,6 +32,7 @@ function Resizer( editor ) {
 		document.getElementById( 'script' ).style.right = x + 'px';
 		document.getElementById( 'viewport' ).style.right = x + 'px';
 		document.getElementById( 'asset-browser' ).style.right = x + 'px';
+		document.getElementById( 'resizer2' ).style.right = x + 'px';
 
 		signals.windowResize.dispatch();
 	}
@@ -45,6 +46,9 @@ function Resizer2( editor ) {
 	const signals = editor.signals;
 	const dom = document.createElement( 'div' );
 	dom.id = 'resizer2';
+	dom.style.right = '250px';
+	const bottom = window.innerHeight * 0.7;
+	dom.style.bottom = bottom
 
 	function onPointerDown( event ) {
 		if ( event.isPrimary === false ) return;
@@ -58,19 +62,19 @@ function Resizer2( editor ) {
 		dom.ownerDocument.removeEventListener( 'pointerup', onPointerUp );
 	}
 
-	function onPointerMove( event ) {
-		if ( event.isPrimary === false ) return;
+	function onPointerMove(event) {
+		if (event.isPrimary === false) return;
 
-		const offsetHeight = document.body.offsetHeight;
+		const windowHeight = window.innerHeight;
 		const clientY = event.clientY;
-		const cY = clientY < 0 ? 0 : clientY > offsetHeight ? offsetHeight : clientY;
-		//const y = Math.max( 335, offsetHeight - cY );
-		const y = clientY
-		dom.style.bottom = y + 'px';
-		// Adjust elements that should resize vertically
-		//document.getElementById( 'sidebar' ).style.height = `calc(100% - ${offsetHeight - y}px)`;
-		//document.getElementById( 'asset-browser' ).style.bottom = y + 'px';
-		// Add other elements that need vertical adjustment
+
+		const newHeight = windowHeight - clientY;
+		const clampedHeight = Math.min(Math.max(newHeight, 69), 300); // Optional min/max
+		const newTop = windowHeight - clampedHeight;
+		dom.style.bottom = `${clampedHeight}px`;
+		
+		document.getElementById( 'viewport' ).style.bottom = clampedHeight + 'px';
+		document.getElementById('asset-browser').style.top = newTop + 'px';
 
 		signals.windowResize.dispatch();
 	}

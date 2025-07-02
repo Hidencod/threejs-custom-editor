@@ -341,9 +341,9 @@ select {
 	left: 0px;
 	right: 350px; /* Should match your sidebar width */
 	height: 5px;
-	bottom: 300px; /* Initial position - adjust based on your layout */
+	bottom: 70vh;
 	cursor: row-resize;
-	background-color: rgba(0, 136, 255, 0.1); /* Slightly visible for debugging */
+	/*background-color: rgba(0, 136, 255, 0.1);  Slightly visible for debugging */
 }
 
 #resizer2:hover {
@@ -834,17 +834,17 @@ select {
 
 }
 #asset-browser {
-	position: fixed;
+	position: absolute;
 	bottom: 0;
 	left: 0;
 	right: 0;
-	height: 150px;
 	background: #222;
 	overflow: auto;
 	border-top: 1px solid #444;
 	padding: 10px;
 	color: white;
 	z-index: 10; /* Make sure it's above the canvas */
+	
 }
 
 .asset-grid {
