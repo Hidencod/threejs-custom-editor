@@ -311,6 +311,7 @@ select {
 
 /* UI */
 
+/* Vertical Resizer (existing) - resizes width */
 #resizer {
 	position: absolute;
 	z-index: 2; /* Above #sidebar */
@@ -318,20 +319,67 @@ select {
 	right: 350px;
 	width: 5px;
 	bottom: 0px;
-	transform: translatex(2.5px);
+	transform: translateX(2.5px);
 	cursor: col-resize;
 }
 
-	#resizer:hover {
-		background-color: #08f8;
-		transition-property: background-color;
-		transition-delay: 0.1s;
-		transition-duration: 0.2s;
-	}
+#resizer:hover {
+	background-color: #08f8;
+	transition-property: background-color;
+	transition-delay: 0.1s;
+	transition-duration: 0.2s;
+}
 
-	#resizer:active {
-		background-color: #08f;
-	}
+#resizer:active {
+	background-color: #08f;
+}
+
+/* Horizontal Resizer (new) - resizes height */
+#resizer2 {
+	position: absolute;
+	z-index: 2;
+	left: 0px;
+	right: 350px; /* Should match your sidebar width */
+	height: 5px;
+	bottom: 300px; /* Initial position - adjust based on your layout */
+	cursor: row-resize;
+	background-color: rgba(0, 136, 255, 0.1); /* Slightly visible for debugging */
+}
+
+#resizer2:hover {
+	background-color: #08f8;
+	transition-property: background-color;
+	transition-delay: 0.1s;
+	transition-duration: 0.2s;
+}
+
+#resizer2:active {
+	background-color: #08f;
+}
+
+/* Corner Resizer (optional) - for diagonal resizing */
+#resizer-corner {
+	position: absolute;
+	z-index: 3; /* Above both resizers */
+	right: 350px;
+	bottom: 350px;
+	width: 10px;
+	height: 10px;
+	transform: translate(5px, 5px);
+	cursor: nw-resize;
+	background-color: #08f4;
+}
+
+#resizer-corner:hover {
+	background-color: #08f8;
+	transition-property: background-color;
+	transition-delay: 0.1s;
+	transition-duration: 0.2s;
+}
+
+#resizer-corner:active {
+	background-color: #08f;
+}
 
 #viewport {
 	position: absolute;

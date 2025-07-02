@@ -72,7 +72,7 @@
 			import { Player } from './js/Player.js';
 			import { Sidebar } from './js/Sidebar.js';
 			import { Menubar } from './js/Menubar.js';
-			import { Resizer } from './js/Resizer.js';
+			import { Resizer,Resizer2 } from './js/Resizer.js';
 			import { AssetBrowser } from './js/AssetBrowser.js';
 			// import AssetBrowser from './js/AssetBrowser.js';
 			
@@ -107,6 +107,8 @@
 
 			const resizer = new Resizer( editor );
 			document.body.appendChild( resizer.dom );
+			const resizer2 = new Resizer2( editor );
+			document.body.appendChild( resizer2.dom );
 			//const assetBrowser = new AssetBrowser(editor);
 			//document.body.appendChild( assetBrowser.dom );
 

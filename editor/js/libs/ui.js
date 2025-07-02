@@ -187,7 +187,10 @@ properties.forEach( function ( property ) {
 
 // events
 
-const events = [ 'KeyUp', 'KeyDown', 'MouseOver', 'MouseOut', 'Click', 'DblClick', 'Change', 'Input' ];
+const events = [ 'KeyUp', 'KeyDown',
+	'MouseOver', 'MouseOut', 'Click', 'DblClick',
+	'Change', 'Input',
+	'DragOver', 'Drop', 'DragEnter', 'DragLeave','ContextMenu','MouseDown' ];
 
 events.forEach( function ( event ) {
 
@@ -1373,5 +1376,9 @@ class ListboxItem extends UIDiv {
 	}
 
 }
+UIInput.prototype.setPlaceholder = function (text) {
+	this.dom.setAttribute('placeholder', text);
+	return this;
+};
 
 export { UIElement, UISpan, UIDiv, UIRow, UIPanel, UIText, UIInput, UITextArea, UISelect, UICheckbox, UIColor, UINumber, UIInteger, UIBreak, UIHorizontalRule, UIButton, UIProgress, UITabbedPanel, UIListbox, ListboxItem,UIImage };
