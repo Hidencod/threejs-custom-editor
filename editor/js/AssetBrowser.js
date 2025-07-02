@@ -3,18 +3,17 @@ import { UISpan, UIDiv, UIImage, UIText, UIInput, UIButton } from './libs/ui.js'
 
 function AssetBrowser(editor) {
     const container = new UISpan().setId('asset-browser');
-    
+    const signals = editor.signals;
     // State management
     let currentAssets = [];
     let filteredAssets = [];
     let selectedAsset = null;
-    let currentFilter = 'all';
     let searchQuery = '';
     let isExpanded = false;
     let currentHeight = 250;
     let currentFolder = 'root';
     let folderStructure = {};
-    let selectedFolder = null;
+    let selectedFolder = 'Assets';
     
     // Asset types configuration
     const assetTypes = {
@@ -31,9 +30,7 @@ function AssetBrowser(editor) {
         .setStyle('bottom', ['0'])
         .setStyle('left', ['0'])
         .setStyle('right', ['350px']) // Match sidebar width
-       // .setStyle('height', ['250px']) // Start with a reasonable default height
-       // .setStyle('minHeight', ['150px'])
-       // .setStyle('maxHeight', ['500px'])
+        .setStyle('top', ['70vh'])
         .setStyle('background', ['#1a1a1a'])
         .setStyle('borderTop', ['1px solid #444'])
         .setStyle('borderRight', ['1px solid #444'])
@@ -41,7 +38,7 @@ function AssetBrowser(editor) {
         .setStyle('zIndex', ['10'])
         .setStyle('transition', ['height 0.3s ease'])
         .setStyle('display', ['flex'])
-        .setStyle('flexDirection', ['column']);
+        .setStyle('flexDirection', ['column'])
 
     // Header section
     const header = new UIDiv()
@@ -53,32 +50,6 @@ function AssetBrowser(editor) {
         .setStyle('backgroundColor', ['#252525'])
         .setStyle('minHeight', ['45px'])
         .setStyle('flexShrink', ['0']);
-
-    const titleSection = new UIDiv()
-        .setStyle('display', ['flex'])
-        .setStyle('alignItems', ['center'])
-        .setStyle('gap', ['8px']);
-
-    const expandButton = new UIButton('▲')
-        .setStyle('background', ['none'])
-        .setStyle('border', ['none'])
-        .setStyle('color', ['#fff'])
-        .setStyle('cursor', ['pointer'])
-        .setStyle('fontSize', ['12px'])
-        .setStyle('padding', ['4px'])
-        .setStyle('borderRadius', ['3px'])
-        .setStyle('transition', ['transform 0.3s ease']);
-
-    const title = new UIText('Project')
-        .setStyle('color', ['#fff'])
-        .setStyle('fontSize', ['14px'])
-        .setStyle('fontWeight', ['bold']);
-
-    const assetCount = new UIText('(0 assets)')
-        .setStyle('color', ['#888'])
-        .setStyle('fontSize', ['12px']);
-
-    titleSection.add(expandButton, title, assetCount);
 
     // Controls section
     const controls = new UIDiv()
@@ -96,15 +67,6 @@ function AssetBrowser(editor) {
         .setStyle('fontSize', ['12px'])
         .setStyle('width', ['150px']);
 
-    const createFolderButton = new UIButton('📁+')
-        .setStyle('background', ['#444'])
-        .setStyle('border', ['1px solid #666'])
-        .setStyle('color', ['#fff'])
-        .setStyle('cursor', ['pointer'])
-        .setStyle('padding', ['4px 8px'])
-        .setStyle('borderRadius', ['3px'])
-        .setStyle('fontSize', ['12px']);
-
     const refreshButton = new UIButton('🔄')
         .setStyle('background', ['#444'])
         .setStyle('border', ['1px solid #666'])
@@ -114,17 +76,8 @@ function AssetBrowser(editor) {
         .setStyle('borderRadius', ['3px'])
         .setStyle('fontSize', ['12px']);
 
-    const uploadButton = new UIButton('📂')
-        .setStyle('background', ['#444'])
-        .setStyle('border', ['1px solid #666'])
-        .setStyle('color', ['#fff'])
-        .setStyle('cursor', ['pointer'])
-        .setStyle('padding', ['4px 8px'])
-        .setStyle('borderRadius', ['3px'])
-        .setStyle('fontSize', ['12px']);
-
-    controls.add(searchInput, createFolderButton, refreshButton, uploadButton);
-    header.add(titleSection, controls);
+    controls.add(searchInput);
+    controls.add(refreshButton);
 
     // Main content area with split layout
     const mainContent = new UIDiv()
@@ -173,38 +126,6 @@ function AssetBrowser(editor) {
         .setStyle('flexDirection', ['column'])
         .setStyle('overflow', ['hidden']);
 
-    // Filter tabs (moved to right panel)
-    const filterTabs = new UIDiv()
-        .setStyle('display', ['flex'])
-        .setStyle('backgroundColor', ['#2a2a2a'])
-        .setStyle('borderBottom', ['1px solid #333'])
-        .setStyle('overflowX', ['auto'])
-        .setStyle('minHeight', ['35px'])
-        .setStyle('flexShrink', ['0']);
-
-    const filters = ['all', 'models', 'textures', 'materials', 'audio', 'videos', 'scripts'];
-    
-    filters.forEach(filter => {
-        const tab = new UIButton(filter === 'all' ? 'All' : filter.charAt(0).toUpperCase() + filter.slice(1))
-            .setStyle('background', [filter === currentFilter ? '#0066cc' : 'transparent'])
-            .setStyle('border', ['none'])
-            .setStyle('color', [filter === currentFilter ? '#fff' : '#aaa'])
-            .setStyle('padding', ['6px 12px'])
-            .setStyle('cursor', ['pointer'])
-            .setStyle('fontSize', ['11px'])
-            .setStyle('whiteSpace', ['nowrap'])
-            .setStyle('borderBottom', [filter === currentFilter ? '2px solid #0088ff' : '2px solid transparent'])
-            .setStyle('transition', ['all 0.2s ease']);
-
-        tab.onClick(() => {
-            currentFilter = filter;
-            updateFilterTabs();
-            filterAssets();
-        });
-
-        filterTabs.add(tab);
-    });
-
     // Content area
     const content = new UIDiv()
         .setStyle('flex', ['1'])
@@ -240,7 +161,7 @@ function AssetBrowser(editor) {
     dropZone.add(new UIText('Drop files here to upload'));
 
     content.add(grid, dropZone);
-    rightPanel.add(filterTabs, content);
+    rightPanel.add(content);
 
     // Asset context menu
     const contextMenu = new UIDiv()
@@ -289,36 +210,415 @@ function AssetBrowser(editor) {
         contextMenu.add(menuItem);
     });
 
-    // Assemble layout
-    mainContent.add(leftPanel, splitter, rightPanel);
-    container.add(header, mainContent, contextMenu);
+    // Notification system
+    const notification = new UIDiv()
+        .setStyle('position', ['fixed'])
+        .setStyle('bottom', ['30px'])
+        .setStyle('left', ['50%'])
+        .setStyle('transform', ['translateX(-50%)'])
+        .setStyle('background', ['#222'])
+        .setStyle('color', ['#fff'])
+        .setStyle('padding', ['10px 24px'])
+        .setStyle('borderRadius', ['6px'])
+        .setStyle('boxShadow', ['0 2px 12px rgba(0,0,0,0.2)'])
+        .setStyle('fontSize', ['13px'])
+        .setStyle('zIndex', ['9999'])
+        .setStyle('display', ['none']);
+    container.add(notification);
 
-    // Initialize folder structure
+    // --- Folder Context Menu ---
+    const folderContextMenu = new UIDiv()
+        .setStyle('position', ['absolute'])
+        .setStyle('background', ['#333'])
+        .setStyle('border', ['1px solid #555'])
+        .setStyle('borderRadius', ['4px'])
+        .setStyle('padding', ['4px 0'])
+        .setStyle('display', ['none'])
+        .setStyle('zIndex', ['1000'])
+        .setStyle('boxShadow', ['0 4px 12px rgba(0,0,0,0.5)']);
+    container.add(folderContextMenu);
+
+    // Submenu for 'Create'
+    const createSubMenu = new UIDiv()
+        .setStyle('position', ['absolute'])
+        .setStyle('left', ['100%'])
+        .setStyle('top', ['0'])
+        .setStyle('background', ['#222'])
+        .setStyle('border', ['1px solid #555'])
+        .setStyle('borderRadius', ['4px'])
+        .setStyle('padding', ['4px 0'])
+        .setStyle('display', ['none'])
+        .setStyle('zIndex', ['1001']);
+    folderContextMenu.add(createSubMenu);
+
+    // Helper: build folder path
+    function buildFolderPath(parentPath, folderName) {
+        if (!parentPath || parentPath === 'root') return 'Assets/' + folderName;
+        return parentPath + '/' + folderName;
+    }
+
+    // Initialize folder structure with unique paths
     folderStructure = {
         root: {
             name: 'Assets',
+            path: 'Assets',
             type: 'folder',
             children: {
-                Models: { name: 'Models', type: 'folder', children: {} },
-                Textures: { name: 'Textures', type: 'folder', children: {} },
-                Materials: { name: 'Materials', type: 'folder', children: {} },
-                Audio: { name: 'Audio', type: 'folder', children: {} },
-                Scripts: { name: 'Scripts', type: 'folder', children: {} }
+                Models: { name: 'Models', path: 'Assets/Models', type: 'folder', children: {} },
+                Textures: { name: 'Textures', path: 'Assets/Textures', type: 'folder', children: {} },
+                Materials: { name: 'Materials', path: 'Assets/Materials', type: 'folder', children: {} },
+                Audio: { name: 'Audio', path: 'Assets/Audio', type: 'folder', children: {} },
+                Scripts: { name: 'Scripts', path: 'Assets/Scripts', type: 'folder', children: {} }
             }
         }
     };
 
-    // Initialize with sample assets
+    // Use full folder paths in sample assets
     const sampleAssets = [
-        { name: 'wood_texture.jpg', type: 'textures', size: '2.1 MB', path: 'assets/wood_texture.jpg', folder: 'Textures' },
-        { name: 'metal_material.mtl', type: 'materials', size: '0.5 KB', path: 'assets/metal_material.mtl', folder: 'Materials' },
-        { name: 'chair_model.glb', type: 'models', size: '15.2 MB', path: 'assets/chair_model.glb', folder: 'Models' },
-        { name: 'ambient_sound.mp3', type: 'audio', size: '3.8 MB', path: 'assets/ambient_sound.mp3', folder: 'Audio' },
-        { name: 'script_helper.js', type: 'scripts', size: '1.2 KB', path: 'assets/script_helper.js', folder: 'Scripts' }
+        { name: 'wood_texture.jpg', type: 'textures', size: '2.1 MB', path: 'assets/wood.jpg', folder: 'Assets/Textures' },
+        { name: 'metal_material.mtl', type: 'materials', size: '0.5 KB', path: 'assets/metal_material.mtl', folder: 'Assets/Materials' },
+        { name: 'chair_model.glb', type: 'models', size: '15.2 MB', path: 'assets/chair_model.glb', folder: 'Assets/Models' },
+        { name: 'ambient_sound.mp3', type: 'audio', size: '3.8 MB', path: 'assets/ambient_sound.mp3', folder: 'Assets/Audio' },
+        { name: 'script_helper.js', type: 'scripts', size: '1.2 KB', path: 'assets/script_helper.js', folder: 'Assets/Scripts' },
+        { name: 'readme.txt', type: 'scripts', size: '0.2 KB', path: 'assets/readme.txt', folder: 'Assets' }
     ];
 
+    // Update renderFolderTree to use folder.path for navigation
+    function renderFolderTree() {
+        folderTree.clear();
+        function createFolderItem(folder, level = 0) {
+            const item = new UIDiv()
+                .setStyle('display', ['flex'])
+                .setStyle('alignItems', ['center'])
+                .setStyle('padding', [`4px ${8 + level * 16}px`])
+                .setStyle('cursor', ['pointer'])
+                .setStyle('fontSize', ['12px'])
+                .setStyle('color', [selectedFolder === folder.path ? '#0088ff' : '#ccc'])
+                .setStyle('borderLeft', [selectedFolder === folder.path ? '3px solid #0088ff' : '3px solid transparent'])
+                .setStyle('backgroundColor', [selectedFolder === folder.path ? '#333' : 'transparent']);
+            item.dom.setAttribute('tabindex', '0');
+            item.dom.setAttribute('role', 'treeitem');
+            item.dom.setAttribute('aria-label', folder.name);
+            if (selectedFolder === folder.path) item.dom.setAttribute('aria-selected', 'true');
+            else item.dom.removeAttribute('aria-selected');
+            const icon = new UIText(level === 0 ? '📁' : '📂')
+                .setStyle('marginRight', ['6px'])
+                .setStyle('fontSize', ['11px']);
+            const label = new UIText(folder.name)
+                .setStyle('fontSize', ['11px']);
+            item.add(icon, label);
+            item.onMouseOver(() => {
+                if (selectedFolder !== folder.path) {
+                    item.setStyle('backgroundColor', ['#2a2a2a']);
+                }
+            });
+            item.onMouseOut(() => {
+                if (selectedFolder !== folder.path) {
+                    item.setStyle('backgroundColor', ['transparent']);
+                }
+            });
+            item.onClick(() => {
+                selectFolder(folder.path, item);
+            });
+            // Keyboard navigation for folders
+            item.dom.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    selectFolder(folder.path, item);
+                    e.preventDefault();
+                }
+                // Up/down navigation
+                if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                    const siblings = Array.from(folderTree.dom.childNodes);
+                    const idx = siblings.indexOf(item.dom);
+                    let nextIdx = e.key === 'ArrowDown' ? idx + 1 : idx - 1;
+                    if (nextIdx >= 0 && nextIdx < siblings.length) {
+                        siblings[nextIdx].focus();
+                    }
+                    e.preventDefault();
+                }
+            });
+            folderTree.add(item);
+            // Add child folders
+            if (folder.children) {
+                Object.values(folder.children).forEach(childFolder => {
+                    createFolderItem(childFolder, level + 1);
+                });
+            }
+        }
+        createFolderItem(folderStructure.root, 0);
+    }
+
+    // Update selectFolder to use path
+    function selectFolder(folderPath, itemElement) {
+        // Clear previous selection
+        folderTree.dom.childNodes.forEach(child => {
+            child.style.color = '#ccc';
+            child.style.borderLeft = '3px solid transparent';
+            child.style.backgroundColor = 'transparent';
+        });
+        // Select current
+        selectedFolder = folderPath;
+        if (itemElement) {
+            itemElement.setStyle('color', ['#0088ff'])
+                .setStyle('borderLeft', ['3px solid #0088ff'])
+                .setStyle('backgroundColor', ['#333']);
+        }
+        filterAssets();
+    }
+
+    // Update renderAssets to use folder.path for navigation
+    function renderAssets() {
+        grid.clear();
+        // Find the selected folder object by path
+        function findFolderByPath(node, path) {
+            if (node.path === path) return node;
+            if (node.children) {
+                for (const key in node.children) {
+                    const found = findFolderByPath(node.children[key], path);
+                    if (found) return found;
+                }
+            }
+            return null;
+        }
+        const currentFolderObj = findFolderByPath(folderStructure.root, selectedFolder);
+        // List child folders (if any)
+        let childFolders = [];
+        if (currentFolderObj && currentFolderObj.children) {
+            childFolders = Object.values(currentFolderObj.children);
+        }
+        // Render folders first
+        childFolders.forEach(folder => {
+            const folderItem = new UIDiv()
+                .setStyle('position', ['relative'])
+                .setStyle('background', ['#222'])
+                .setStyle('border', ['1px solid #444'])
+                .setStyle('borderRadius', ['4px'])
+                .setStyle('padding', ['6px'])
+                .setStyle('cursor', ['pointer'])
+                .setStyle('transition', ['all 0.2s ease'])
+                .setStyle('aspectRatio', ['1'])
+                .setStyle('display', ['flex'])
+                .setStyle('flexDirection', ['column'])
+                .setStyle('alignItems', ['center'])
+                .setStyle('justifyContent', ['center'])
+                .setStyle('textAlign', ['center']);
+            // Folder icon
+            const icon = new UIText('📁')
+                .setStyle('fontSize', ['22px'])
+                .setStyle('marginBottom', ['3px']);
+            // Folder name
+            const name = new UIText(folder.name.length > 10 ? folder.name.substring(0, 10) + '...' : folder.name)
+                .setStyle('color', ['#fff'])
+                .setStyle('fontSize', ['10px'])
+                .setStyle('fontWeight', ['bold'])
+                .setStyle('marginBottom', ['1px'])
+                .setStyle('wordBreak', ['break-all']);
+            folderItem.add(icon, name);
+            folderItem.onMouseOver(() => {
+                folderItem.setStyle('backgroundColor', ['#333'])
+                    .setStyle('borderColor', ['#0088ff'])
+                    .setStyle('transform', ['translateY(-1px)']);
+            });
+            folderItem.onMouseOut(() => {
+                folderItem.setStyle('backgroundColor', ['#222'])
+                    .setStyle('borderColor', ['#444'])
+                    .setStyle('transform', ['translateY(0)']);
+            });
+            folderItem.onClick(() => {
+                selectedFolder = folder.path;
+                renderAssets();
+                renderBreadcrumb();
+                updateAssetCount();
+            });
+            grid.add(folderItem);
+        });
+        // Render files/assets as before
+        const gridHeight = grid.dom.offsetHeight || 300;
+        const itemHeight = 70; // estimate
+        const itemsPerPage = Math.ceil(gridHeight / itemHeight) * 4; // 4 columns
+        const scrollTop = grid.dom.scrollTop || 0;
+        const startIdx = Math.floor(scrollTop / itemHeight) * 4;
+        const endIdx = Math.min(filteredAssets.length, startIdx + itemsPerPage);
+        const visibleAssets = filteredAssets.slice(startIdx, endIdx);
+        visibleAssets.forEach((asset, i) => {
+            const idx = startIdx + i;
+            const item = createAssetItem(asset, idx);
+            grid.add(item);
+        });
+        if (childFolders.length === 0 && filteredAssets.length === 0) {
+            const emptyMessage = new UIDiv()
+                .setStyle('gridColumn', ['1 / -1'])
+                .setStyle('textAlign', ['center'])
+                .setStyle('color', ['#666'])
+                .setStyle('padding', ['20px'])
+                .setStyle('fontSize', ['12px']);
+            const message = searchQuery ? 'No assets match your search' :
+                selectedFolder && selectedFolder !== 'Assets' ? `No assets in ${selectedFolder}` :
+                    'No assets found';
+            emptyMessage.add(new UIText(message));
+            grid.add(emptyMessage);
+        }
+        grid.dom.setAttribute('role', 'grid');
+        grid.dom.setAttribute('aria-label', 'Asset Grid');
+        grid.dom.tabIndex = 0;
+        grid.dom.addEventListener('keydown', (e) => {
+            const items = Array.from(grid.dom.childNodes);
+            const focused = document.activeElement;
+            const idx = items.indexOf(focused);
+            if (e.key === 'ArrowRight' && idx < items.length - 1) {
+                items[idx + 1].focus();
+                e.preventDefault();
+            } else if (e.key === 'ArrowLeft' && idx > 0) {
+                items[idx - 1].focus();
+                e.preventDefault();
+            } else if (e.key === 'ArrowDown') {
+                if (idx + 4 < items.length) items[idx + 4].focus();
+                e.preventDefault();
+            } else if (e.key === 'ArrowUp') {
+                if (idx - 4 >= 0) items[idx - 4].focus();
+                e.preventDefault();
+            } else if (e.key === 'Enter' || e.key === ' ') {
+                if (focused && focused.click) focused.click();
+                e.preventDefault();
+            }
+        });
+    }
+
+    // Update filterAssets to use full path
+    function filterAssets() {
+        let filtered = currentAssets;
+        // Only show files directly in the selected folder (by path)
+        filtered = filtered.filter(asset => asset.folder === selectedFolder);
+        if (searchQuery) {
+            filtered = filtered.filter(asset => 
+                asset.name.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+        }
+        filteredAssets = filtered;
+        updateAssetCount();
+        renderAssets();
+    }
+
+    // Update folder creation logic to use full path
+    function showFolderContextMenu(x, y, pfolderPath) {
+        folderContextMenu.clear();
+        createSubMenu.clear();
+        // Create menu item
+        const createItem = new UIButton('Create ▶')
+            .setStyle('display', ['block'])
+            .setStyle('width', ['160px'])
+            .setStyle('background', ['none'])
+            .setStyle('border', ['none'])
+            .setStyle('color', ['#fff'])
+            .setStyle('padding', ['6px 12px'])
+            .setStyle('textAlign', ['left'])
+            .setStyle('cursor', ['pointer'])
+            .setStyle('fontSize', ['12px'])
+            .setStyle('position', ['relative']);
+        // Show submenu on hover
+        createItem.dom.addEventListener('mouseenter', () => {
+            createSubMenu.setStyle('display', ['block']);
+        });
+        createItem.dom.addEventListener('mouseleave', () => {
+            setTimeout(() => createSubMenu.setStyle('display', ['none']), 200);
+        });
+        folderContextMenu.add(createItem);
+        // Submenu options
+        const createOptions = [
+            { label: 'Folder', type: 'folder' },
+            { label: 'JS Script', type: 'script' },
+            { label: 'Material', type: 'material' }
+        ];
+        
+        createOptions.forEach(opt => {
+            const subItem = new UIButton(opt.label)
+                .setStyle('display', ['block'])
+                .setStyle('width', ['140px'])
+                .setStyle('background', ['none'])
+                .setStyle('border', ['none'])
+                .setStyle('color', ['#fff'])
+                .setStyle('padding', ['6px 12px'])
+                .setStyle('textAlign', ['left'])
+                .setStyle('cursor', ['pointer'])
+                .setStyle('fontSize', ['12px']);
+            subItem.onMouseOver(() => subItem.setStyle('backgroundColor', ['#444']));
+            subItem.onMouseOut(() => subItem.setStyle('backgroundColor', ['transparent']));
+            subItem.onClick(() => {
+                if (opt.type === 'folder') {
+                    const folderName = prompt('Enter new folder name:');
+                    if (!folderName || !folderName.trim()) {
+                        showNotification('Folder name cannot be empty.', 'error');
+                        folderContextMenu.setStyle('display', ['none']);
+                        return;
+                    }
+                    // Find parent folder object by path
+                    function findFolderByPath(node, path) {
+                        if (node.path === path) return node;
+                        if (node.children) {
+                            for (const key in node.children) {
+                                const found = findFolderByPath(node.children[key], path);
+                                if (found) return found;
+                            }
+                        }
+                        return null;
+                    }
+                    const parentFolderObj = findFolderByPath(folderStructure.root, pfolderPath);
+                    const newFolderPath = buildFolderPath(parentFolderObj.path, folderName.trim());
+                    if (parentFolderObj.children[folderName.trim()]) {
+                        showNotification('Folder already exists.', 'error');
+                        folderContextMenu.setStyle('display', ['none']);
+                        return;
+                    }
+                    parentFolderObj.children[folderName.trim()] = {
+                        name: folderName.trim(),
+                        path: newFolderPath,
+                        type: 'folder',
+                        children: {}
+                    };
+                    showNotification('Folder created!', 'info');
+                    renderFolderTree();
+                    renderAssets();
+                }
+                folderContextMenu.setStyle('display', ['none']);
+            });
+            createSubMenu.add(subItem);
+        });
+        // Position menu
+        folderContextMenu.setStyle('display', ['block'])
+            .setStyle('left', [x + 'px'])
+            .setStyle('top', [y + 'px']);
+        createSubMenu.setStyle('display', ['none']);
+        createItem.dom.appendChild(createSubMenu.dom);
+        createSubMenu.setStyle('position', ['absolute'])
+            .setStyle('top', ['0'])
+            .setStyle('left', ['100%']);
+        folderContextMenu.dom.addEventListener('click', e => {
+            e.stopPropagation(); // 🛑 prevent clicks inside the menu from closing it
+        });
+        // Hide menu when clicking elsewhere
+        const hideMenu = () => {
+            folderContextMenu.setStyle('display', ['none']);
+            document.removeEventListener('click', hideMenu);
+        };
+        const rect = container.dom.getBoundingClientRect();
+        const offsetX = x - rect.left;
+        const offsetY = y - rect.top;
+
+        folderContextMenu.setStyle('left', [offsetX + 'px']).setStyle('top', [offsetY + 'px']);
+        setTimeout(() => document.addEventListener('click', hideMenu), 0);
+    }
+
+    // Assemble layout
+    mainContent.add(leftPanel, splitter, rightPanel);
+    container.add(header, mainContent, contextMenu, folderContextMenu);
+
+    // Initialize with sample assets
     currentAssets = sampleAssets;
     filteredAssets = [...currentAssets];
+
+    // Render folder tree and right panel on initial load
+    renderFolderTree();
+    renderAssets();
 
     // Event handlers
     function updateFilterTabs() {
@@ -331,132 +631,13 @@ function AssetBrowser(editor) {
         });
     }
 
-    function filterAssets() {
-        let filtered = currentAssets;
-
-        // Apply folder filter
-        if (selectedFolder && selectedFolder !== 'root') {
-            filtered = filtered.filter(asset => asset.folder === selectedFolder);
-        }
-
-        // Apply type filter
-        if (currentFilter !== 'all') {
-            filtered = filtered.filter(asset => asset.type === currentFilter);
-        }
-
-        // Apply search filter
-        if (searchQuery) {
-            filtered = filtered.filter(asset => 
-                asset.name.toLowerCase().includes(searchQuery.toLowerCase())
-            );
-        }
-
-        filteredAssets = filtered;
-        updateAssetCount();
-        renderAssets();
-    }
-
     function updateAssetCount() {
         const folderText = selectedFolder && selectedFolder !== 'root' ? `${selectedFolder} - ` : '';
         assetCount.setValue(`(${folderText}${filteredAssets.length} assets)`);
+        renderBreadcrumb();
     }
 
-    function renderFolderTree() {
-        folderTree.clear();
-
-        function createFolderItem(folder, name, level = 0) {
-            const item = new UIDiv()
-                .setStyle('display', ['flex'])
-                .setStyle('alignItems', ['center'])
-                .setStyle('padding', [`4px ${8 + level * 16}px`])
-                .setStyle('cursor', ['pointer'])
-                .setStyle('fontSize', ['12px'])
-                .setStyle('color', [selectedFolder === name ? '#0088ff' : '#ccc'])
-                .setStyle('borderLeft', [selectedFolder === name ? '3px solid #0088ff' : '3px solid transparent'])
-                .setStyle('backgroundColor', [selectedFolder === name ? '#333' : 'transparent']);
-
-            const icon = new UIText(level === 0 ? '📁' : '📂')
-                .setStyle('marginRight', ['6px'])
-                .setStyle('fontSize', ['11px']);
-
-            const label = new UIText(folder.name)
-                .setStyle('fontSize', ['11px']);
-
-            item.add(icon, label);
-
-            item.onMouseOver(() => {
-                if (selectedFolder !== name) {
-                    item.setStyle('backgroundColor', ['#2a2a2a']);
-                }
-            });
-
-            item.onMouseOut(() => {
-                if (selectedFolder !== name) {
-                    item.setStyle('backgroundColor', ['transparent']);
-                }
-            });
-
-            item.onClick(() => {
-                selectFolder(name, item);
-            });
-
-            folderTree.add(item);
-
-            // Add child folders
-            if (folder.children) {
-                Object.keys(folder.children).forEach(childName => {
-                    createFolderItem(folder.children[childName], childName, level + 1);
-                });
-            }
-        }
-
-        createFolderItem(folderStructure.root, 'root');
-    }
-
-    function selectFolder(folderName, itemElement) {
-        // Clear previous selection
-        folderTree.dom.childNodes.forEach(child => {
-            child.style.color = '#ccc';
-            child.style.borderLeft = '3px solid transparent';
-            child.style.backgroundColor = 'transparent';
-        });
-
-        // Select current
-        selectedFolder = folderName;
-        if (itemElement) {
-            itemElement.setStyle('color', ['#0088ff'])
-                .setStyle('borderLeft', ['3px solid #0088ff'])
-                .setStyle('backgroundColor', ['#333']);
-        }
-
-        filterAssets();
-    }
-
-    function renderAssets() {
-        grid.clear();
-
-        filteredAssets.forEach(asset => {
-            const item = createAssetItem(asset);
-            grid.add(item);
-        });
-
-        if (filteredAssets.length === 0) {
-            const emptyMessage = new UIDiv()
-                .setStyle('gridColumn', ['1 / -1'])
-                .setStyle('textAlign', ['center'])
-                .setStyle('color', ['#666'])
-                .setStyle('padding', ['20px'])
-                .setStyle('fontSize', ['12px']);
-            
-            const message = searchQuery ? 'No assets match your search' : 
-                           selectedFolder && selectedFolder !== 'root' ? `No assets in ${selectedFolder}` : 
-                           'No assets found';
-            emptyMessage.add(new UIText(message));
-            grid.add(emptyMessage);
-        }
-    }
-
-    function createAssetItem(asset) {
+    function createAssetItem(asset, idx) {
         const item = new UIDiv()
             .setStyle('position', ['relative'])
             .setStyle('background', ['#2a2a2a'])
@@ -471,6 +652,10 @@ function AssetBrowser(editor) {
             .setStyle('alignItems', ['center'])
             .setStyle('justifyContent', ['center'])
             .setStyle('textAlign', ['center']);
+
+        item.dom.setAttribute('tabindex', '0');
+        item.dom.setAttribute('role', 'gridcell');
+        item.dom.setAttribute('aria-label', asset.name);
 
         // Asset icon/preview
         const preview = new UIDiv()
@@ -489,9 +674,58 @@ function AssetBrowser(editor) {
                 .setStyle('objectFit', ['cover'])
                 .setStyle('borderRadius', ['2px']);
             preview.add(img);
+        } else if (asset.type === 'audio') {
+            // Show audio icon and add playback on click
+            const icon = new UIText('🔊');
+            preview.add(icon);
+            let audio;
+            item.onClick(() => {
+                if (!audio) {
+                    audio = document.createElement('audio');
+                    audio.src = asset.path;
+                    audio.controls = true;
+                    audio.style.width = '100%';
+                    preview.dom.innerHTML = '';
+                    preview.dom.appendChild(audio);
+                    audio.play();
+                } else {
+                    audio.pause();
+                    preview.clear();
+                    preview.add(icon);
+                    audio = null;
+                }
+            });
+        } else if (asset.type === 'videos') {
+            // Show video icon and add playback on click
+            const icon = new UIText('🎬');
+            preview.add(icon);
+            let video;
+            item.onClick(() => {
+                if (!video) {
+                    video = document.createElement('video');
+                    video.src = asset.path;
+                    video.controls = true;
+                    video.style.width = '100%';
+                    video.style.height = '32px';
+                    preview.dom.innerHTML = '';
+                    preview.dom.appendChild(video);
+                    video.play();
+                } else {
+                    video.pause();
+                    preview.clear();
+                    preview.add(icon);
+                    video = null;
+                }
+            });
+        } else if (asset.type === 'models') {
+            // Show 3D icon for now (optionally, add 3D preview later)
+            preview.add(new UIText('🎨'));
+        } else if (asset.type === 'materials') {
+            preview.add(new UIText('🎭'));
+        } else if (asset.type === 'scripts') {
+            preview.add(new UIText('📜'));
         } else {
-            const icon = assetTypes[asset.type]?.icon || '📄';
-            preview.add(new UIText(icon));
+            preview.add(new UIText('📄'));
         }
 
         // Asset name
@@ -542,6 +776,15 @@ function AssetBrowser(editor) {
         item.dom.addEventListener('dragstart', (event) => {
             event.dataTransfer.setData('text/plain', JSON.stringify(asset));
             event.dataTransfer.effectAllowed = 'copy';
+        });
+
+        // Keyboard context menu
+        item.dom.addEventListener('keydown', (e) => {
+            if ((e.key === 'ContextMenu' || (e.shiftKey && e.key === 'F10'))) {
+                selectedAsset = asset;
+                showContextMenu(item.dom.getBoundingClientRect().left, item.dom.getBoundingClientRect().top + 32);
+                e.preventDefault();
+            }
         });
 
         return item;
@@ -627,24 +870,6 @@ function AssetBrowser(editor) {
         }
     }
 
-    function createFolder() {
-        const folderName = prompt('Enter folder name:');
-        if (folderName && folderName.trim()) {
-            const parentFolder = selectedFolder || 'root';
-            const parent = parentFolder === 'root' ? folderStructure.root : 
-                          folderStructure.root.children[parentFolder];
-            
-            if (parent && parent.children) {
-                parent.children[folderName.trim()] = {
-                    name: folderName.trim(),
-                    type: 'folder',
-                    children: {}
-                };
-                renderFolderTree();
-            }
-        }
-    }
-
     // Splitter functionality
     let isResizing = false;
     let startX = 0;
@@ -657,7 +882,9 @@ function AssetBrowser(editor) {
         document.body.style.cursor = 'col-resize';
         event.preventDefault();
     });
-
+    container.dom.addEventListener('contextmenu', event => {
+        event.preventDefault(); // 🚫 stops the default browser menu
+    });
     document.addEventListener('mousemove', (event) => {
         if (!isResizing) return;
         
@@ -673,21 +900,31 @@ function AssetBrowser(editor) {
         }
     });
 
-    // Expand/Collapse functionality
+    // Restore expandButton for expanding/minimizing the asset browser
+    const expandButton = new UIButton('▲')
+        .setStyle('background', ['none'])
+        .setStyle('border', ['none'])
+        .setStyle('color', ['#fff'])
+        .setStyle('cursor', ['pointer'])
+        .setStyle('fontSize', ['12px'])
+        .setStyle('padding', ['4px'])
+        .setStyle('borderRadius', ['3px'])
+        .setStyle('transition', ['transform 0.3s ease']);
+
     expandButton.onClick(() => {
         isExpanded = !isExpanded;
-        const topPercent = isExpanded ? 0.7 : 0.9; // 40% top when expanded, 90% when collapsed
+        const topPercent = isExpanded ? 0.7 : 0.9; // 70% top when expanded, 90% when collapsed
         const top = window.innerHeight * topPercent;
-
         container.setStyle('top', [`${top}px`]);
         expandButton.setTextContent(isExpanded ? '▼' : '▲');
         expandButton.setStyle('transform', [isExpanded ? 'rotate(180deg)' : 'rotate(0deg)']);
-
         // Optional: update viewport bottom if needed
         const height = window.innerHeight - top;
-        document.getElementById('resizer2').style.bottom = `${height}px`;
-        document.getElementById('viewport').style.bottom = `${height}px`;
-        
+        const viewport = document.getElementById('viewport');
+        const resizer2 = document.getElementById('resizer2');
+        if (viewport) viewport.style.bottom = `${height}px`;
+        if (resizer2) resizer2.style.bottom = `${height}px`;
+        signals.windowResize.dispatch();
     });
 
     // Search functionality
@@ -696,24 +933,9 @@ function AssetBrowser(editor) {
         filterAssets();
     });
 
-    // Create folder functionality
-    createFolderButton.onClick(() => {
-        createFolder();
-    });
-
     // Refresh functionality
     refreshButton.onClick(() => {
         loadAssets();
-    });
-
-    // Upload functionality
-    uploadButton.onClick(() => {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.multiple = true;
-        input.accept = '.gltf,.glb,.fbx,.obj,.jpg,.jpeg,.png,.webp,.mp3,.wav,.mp4,.js,.json,.mtl';
-        input.onchange = handleFileUpload;
-        input.click();
     });
 
     // Drag and drop functionality
@@ -733,22 +955,40 @@ function AssetBrowser(editor) {
         dropZone.setStyle('display', ['none']);
         handleFileUpload({ target: { files: event.dataTransfer.files } });
     });
-
+    
     function handleFileUpload(event) {
         const files = Array.from(event.target.files);
         const targetFolder = selectedFolder && selectedFolder !== 'root' ? selectedFolder : 'root';
-        
+        let added = 0;
         files.forEach(file => {
+            const assetType = getAssetType(file.name);
+            if (!assetTypes[assetType]) {
+                showNotification(`Unsupported file type: ${file.name}`, 'error');
+                return;
+            }
+            if (file.size > 100 * 1024 * 1024) { // 100MB limit
+                showNotification(`File too large: ${file.name}`, 'error');
+                return;
+            }
+            const folder = targetFolder === 'root' ? getDefaultFolder(assetType) : targetFolder;
+            if (currentAssets.some(a => a.name === file.name && a.folder === folder)) {
+                showNotification(`Duplicate asset name in folder: ${file.name}`, 'error');
+                return;
+            }
             const asset = {
                 name: file.name,
-                type: getAssetType(file.name),
+                type: assetType,
                 size: formatFileSize(file.size),
                 path: URL.createObjectURL(file),
-                folder: targetFolder === 'root' ? getDefaultFolder(getAssetType(file.name)) : targetFolder,
+                folder: folder,
                 file: file
             };
             currentAssets.push(asset);
+            added++;
         });
+        if (added > 0) {
+            showNotification(`${added} asset(s) uploaded successfully!`, 'info');
+        }
         filterAssets();
     }
 
@@ -789,6 +1029,110 @@ function AssetBrowser(editor) {
             filterAssets();
         }, 500);
     }
+
+    function showNotification(message, type = 'info', duration = 2500) {
+        notification.setStyle('background', [type === 'error' ? '#c0392b' : '#222']);
+        notification.setTextContent(message);
+        notification.setStyle('display', ['block']);
+        setTimeout(() => notification.setStyle('display', ['none']), duration);
+    }
+
+    // --- Breadcrumb Path UI ---
+    function getBreadcrumbPath(folderName) {
+        // Traverse up from selectedFolder to root
+        const path = [];
+        let current = folderName;
+        let parent = folderStructure.root;
+        if (current === 'root' || !current) return [{ name: 'Assets', key: 'root' }];
+        // Find path recursively
+        function findPath(node, key, acc) {
+            if (key === current) {
+                acc.push({ name: node.name, key });
+                return true;
+            }
+            if (node.children) {
+                for (const childKey in node.children) {
+                    if (findPath(node.children[childKey], childKey, acc)) {
+                        acc.unshift({ name: node.name, key });
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+        findPath(folderStructure.root, 'root', path);
+        return path;
+    }
+
+    function renderBreadcrumb() {
+        breadcrumb.clear();
+        const path = getBreadcrumbPath(selectedFolder || 'root');
+        path.forEach((segment, idx) => {
+            const crumb = new UIText(segment.name)
+                .setStyle('color', ['#fff'])
+                .setStyle('fontWeight', ['bold'])
+                .setStyle('cursor', ['pointer'])
+                .setStyle('fontSize', ['14px'])
+                .setStyle('paddingRight', ['4px']);
+            crumb.dom.addEventListener('click', () => {
+                selectFolder(segment.key);
+                renderBreadcrumb();
+            });
+            breadcrumb.add(crumb);
+            if (idx < path.length - 1) {
+                const divider = new UIText('>')
+                    .setStyle('color', ['#888'])
+                    .setStyle('fontSize', ['13px'])
+                    .setStyle('padding', ['0 4px']);
+                breadcrumb.add(divider);
+            }
+        });
+    }
+
+    // --- Header Layout Update ---
+    // Remove old titleSection and assetCount usage
+    // Add new breadcrumb, filter badge, and asset count
+    const breadcrumb = new UIDiv().setStyle('display', ['inline-flex']).setStyle('alignItems', ['center']);
+    const filterBadge = new UIDiv().setStyle('display', ['inline-flex']).setStyle('alignItems', ['center']);
+    const assetCount = new UIText('(0 assets)')
+        .setStyle('color', ['#888'])
+        .setStyle('fontSize', ['12px'])
+        .setStyle('marginLeft', ['8px']);
+    const headerLeft = new UIDiv()
+        .setStyle('display', ['flex'])
+        .setStyle('alignItems', ['center'])
+        .setStyle('gap', ['8px']);
+    headerLeft.add(expandButton, breadcrumb, filterBadge, assetCount);
+    header.clear();
+    header.add(headerLeft, controls);
+
+    // Initial render
+    renderBreadcrumb();
+
+    // Attach a single contextmenu handler to the whole asset browser container
+    container.dom.addEventListener('contextmenu', function(event) {
+        event.preventDefault(); // Always suppress native menu
+        
+        let el = event.target;
+        // Check if right-clicked on a folder in the tree
+        while (el && el !== container.dom) {
+            if (el.getAttribute && el.getAttribute('role') === 'treeitem') {
+                const folderName = el.textContent.trim();
+                showFolderContextMenu(event.clientX, event.clientY, folderName);
+                return;
+            }
+            el = el.parentElement;
+        }
+        // If right-clicked on the right panel (not on an asset)
+        // Show a context menu for creating assets in the current folder
+        // (Assume rightPanel.dom is the asset grid area)
+        if (event.target === rightPanel.dom || rightPanel.dom.contains(event.target)) {
+            showFolderContextMenu(event.clientX, event.clientY, selectedFolder || 'root');
+            return;
+        }
+        // Optionally, handle other areas if needed
+    });
+
 	return container;
 }
 

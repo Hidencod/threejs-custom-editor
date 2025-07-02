@@ -7,7 +7,7 @@ import { AddObjectCommand } from './commands/AddObjectCommand.js';
 function MenubarAdd( editor ) {
 
 	const strings = editor.strings;
-
+	console.log(strings.getKey( 'menubar/add' ))
 	const container = new UIPanel();
 	container.setClass( 'menu' );
 

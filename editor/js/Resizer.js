@@ -46,7 +46,6 @@ function Resizer2( editor ) {
 	const signals = editor.signals;
 	const dom = document.createElement( 'div' );
 	dom.id = 'resizer2';
-	dom.style.right = '250px';
 	const bottom = window.innerHeight * 0.7;
 	dom.style.bottom = bottom
 
