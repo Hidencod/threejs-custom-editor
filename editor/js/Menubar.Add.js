@@ -3,6 +3,8 @@ import * as THREE from 'three';
 import { UIPanel, UIRow } from './libs/ui.js';
 
 import { AddObjectCommand } from './commands/AddObjectCommand.js';
+import { registerParticleSystem } from './ParticleSystem.Registery.js';
+import { ParticleSystem } from './ParticleSystem.js';
 
 function MenubarAdd( editor ) {
 
@@ -33,8 +35,29 @@ function MenubarAdd( editor ) {
 		editor.execute( new AddObjectCommand( editor, mesh ) );
 
 	} );
-	options.add( option );
+	option = new UIRow();
+	option.setClass('option');
+	option.setTextContent('Particle System');
+	option.onClick(() => {
+		try {
+			const system = new ParticleSystem();
+			const object = system.getObject3D();
+			object.name = 'ParticleSystem';
+			const id = Date.now();
+			object.userData = {
+				particleSystem: true,
+				systemId:id
+			};
+			registerParticleSystem(id, object);
+			editor.execute(new AddObjectCommand(editor, object));
+			console.log('Particle system added!');
+			editor.select(object);
 
+		} catch (e) {
+			console.error('Error:', e);
+		}
+	});
+options.add(option);
 	// Mesh
 
 	const meshSubmenuTitle = new UIRow().setTextContent( strings.getKey( 'menubar/add/mesh' ) ).addClass( 'option' ).addClass( 'submenu-title' );

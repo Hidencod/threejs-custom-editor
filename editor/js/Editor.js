@@ -6,6 +6,8 @@ import { History as _History } from './History.js';
 import { Strings } from './Strings.js';
 import { Storage as _Storage } from './Storage.js';
 import { Selector } from './Selector.js';
+import { ParticleSystem } from './ParticleSystem.js';
+import { registerParticleSystem } from './ParticleSystem.Registery.js';
 
 var _DEFAULT_CAMERA = new THREE.PerspectiveCamera( 50, 1, 0.01, 1000 );
 _DEFAULT_CAMERA.name = 'Camera';
@@ -657,8 +659,33 @@ Editor.prototype = {
 
 		this.history.fromJSON( json.history );
 		this.scripts = json.scripts;
+		const scene = await loader.parseAsync( json.scene );
+		scene.traverse(child => {
+		if (child.userData.particleSystem && child.userData.config) {
+			const config = child.userData.config;
 
-		this.setScene( await loader.parseAsync( json.scene ) );
+			const particleSystem = new ParticleSystem(config);
+
+			// Copy transform
+			particleSystem.position.copy(child.position);
+			particleSystem.rotation.copy(child.rotation);
+			particleSystem.scale.copy(child.scale);
+			particleSystem.name = child.name;
+
+			// Restore userData
+			particleSystem.userData = child.userData;
+
+			// Replace in scene
+			if (child.parent) {
+				child.parent.add(particleSystem);
+				child.parent.remove(child);
+			}
+
+			// Optionally re-register
+			registerParticleSystem(particleSystem.userData.systemId, particleSystem);
+		}
+	});
+		this.setScene( scene );
 
 		if ( json.environment === 'Room' ||
 			 json.environment === 'ModelViewer' /* DEPRECATED */ ) {
