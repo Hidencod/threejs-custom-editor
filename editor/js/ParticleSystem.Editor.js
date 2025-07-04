@@ -149,7 +149,7 @@ const closeBtn = new UIButton('×')
     });
     
     // Emission Rate
-    this.addNumberProperty('Emission Rate', 'emissionRate', 1, 0.1, 100, (value) => {
+    this.addNumberProperty('Emission Rate', 'emissionRate', 1, 0.1, 10000, (value) => {
       if (this.currentSystem) {
         this.currentSystem.updateProperty('emissionRate', value);
       }

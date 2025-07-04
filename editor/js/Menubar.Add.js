@@ -40,7 +40,9 @@ function MenubarAdd( editor ) {
 	option.setTextContent('Particle System');
 	option.onClick(() => {
 		try {
-			const system = new ParticleSystem();
+			const system = new ParticleSystem(
+				{playOnAwake: true} 
+			);
 			const object = system.getObject3D();
 			object.name = 'ParticleSystem';
 			const id = Date.now();

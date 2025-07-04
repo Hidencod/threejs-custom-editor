@@ -1,6 +1,3 @@
-// Enhanced ParticleSystem.js with Play On Awake feature
-import * as THREE from 'three';
-
 class ParticleSystem extends THREE.Object3D {
   constructor(config = {}) {
     super();
@@ -514,39 +511,3 @@ class ParticleSystem extends THREE.Object3D {
     return data;
   }
 }
-
-export { ParticleSystem };
-
-// Usage examples:
-/*
-// Auto-play particle system (default behavior)
-const particles1 = new ParticleSystem({
-  particleCount: 5000,
-  playOnAwake: true  // Default
-});
-
-// Manual control particle system
-const particles2 = new ParticleSystem({
-  particleCount: 5000,
-  playOnAwake: false,
-  onStart: (system) => console.log('Started!'),
-  onStop: (system) => console.log('Stopped!')
-});
-particles2.play(); // Must call manually
-
-// Prewarm system (starts with particles already active)
-const particles3 = new ParticleSystem({
-  particleCount: 5000,
-  playOnAwake: true,
-  prewarm: true
-});
-
-// Burst system with auto-destroy
-const particles4 = new ParticleSystem({
-  particleCount: 1000,
-  burst: true,
-  loop: false,
-  autoDestroy: true,
-  playOnAwake: true
-});
-*/
