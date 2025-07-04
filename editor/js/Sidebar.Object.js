@@ -387,6 +387,7 @@ function SidebarObject(editor) {
 				systemeditor.showModal(); // ✅ floating editor!
 			} else {
 				systemeditor.selectSystem(editor.selected);
+				systemeditor.showModal(); 
 			}
 		} else {
 			alert('Please select a Particle System object first.');
@@ -639,6 +640,7 @@ function SidebarObject(editor) {
 					editor.execute(new SetShadowValueCommand(editor, object, 'radius', objectShadowRadius.getValue()));
 
 				}
+				
 
 			}
 
@@ -735,7 +737,7 @@ function SidebarObject(editor) {
 
 	}
 	function updateParticleSystem(object) {
-		console.log(object)
+		
 		if (object.isParticleSystem) {
 			editParticleSystemRow.setDisplay('')
 

@@ -23,7 +23,7 @@ class ParticleSystemEditor {
       if (this.currentSystem && this.currentSystem.isPlaying) {
         const delta = clock.getDelta();
         this.currentSystem.update(delta);
-        this.editor.signals.sceneGraphChanged.dispatch();
+        this.editor.signals.spaceChanged.dispatch();
       }
       this.animationId = requestAnimationFrame(animate);
     };
@@ -254,9 +254,10 @@ const closeBtn = new UIButton('×')
         if (object?.userData?.particleSystem) {
             const id = object.userData.systemId;
             const system = getParticleSystem(id);
-            system.play();
+            
             if (system) {
                 this.currentSystem = system;
+                system.play();
                 console.log('Bound to ParticleSystem:', system);
             } else {
                 console.warn('No registered system found for ID:', id);
@@ -274,6 +275,7 @@ const closeBtn = new UIButton('×')
     }
   }
   showModal() {
+    console.log("Showing modal")
   this.container.dom.style.position = 'fixed';
   this.container.dom.style.top = '50%';
   this.container.dom.style.left = '50%';
@@ -285,6 +287,7 @@ const closeBtn = new UIButton('×')
   this.container.dom.style.maxHeight = '80vh';
   this.container.dom.style.overflowY = 'auto';
   this.container.dom.style.display = '';
+  console.log(this.container.dom.style.display)
   document.body.appendChild(this.container.dom);
   this.makeDraggable(this.container.dom);
 }
