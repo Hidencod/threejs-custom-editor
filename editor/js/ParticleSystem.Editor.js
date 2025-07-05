@@ -1,5 +1,6 @@
-import { UIPanel, UIRow, UIHorizontalRule, UIText , UIButton,UINumber,UICheckbox,UIColor} from './libs/ui.js';
+import { UIPanel, UIRow, UIHorizontalRule, UIText, UIButton, UINumber, UICheckbox, UIColor } from './libs/ui.js';
 import { getParticleSystem } from './ParticleSystem.Registery.js';
+
 // Dedicated Particle System Editor Panel
 class ParticleSystemEditor {
   constructor(editor) {
@@ -7,6 +8,7 @@ class ParticleSystemEditor {
     this.currentSystem = null;
     this.updateFunction = null;
     this.animationId = null;
+    this.propertyInputs = {}; // Store references to input elements
     
     this.container = new UIPanel();
     this.container.setClass('ParticleSystemEditor');
@@ -32,52 +34,69 @@ class ParticleSystemEditor {
   }
   
   setupUI() {
+    // Header with drag handle and close button
     const header = document.createElement('div');
-header.style.cursor = 'move';
-header.style.display = 'flex';
-header.style.justifyContent = 'space-between';
-header.style.alignItems = 'center';
+    header.style.cursor = 'move';
+    header.style.display = 'flex';
+    header.style.justifyContent = 'space-between';
+    header.style.alignItems = 'center';
+    header.style.padding = '8px';
+    header.style.backgroundColor = '#333';
+    header.style.borderBottom = '1px solid #555';
+    
     // Title
     const title = new UIText('Particle System Editor');
-title.setClass('title');
-title.setStyle('color', '#fff');
-title.setStyle('font-weight', 'bold');
-title.setStyle('padding', '4px');
-
-const closeBtn = new UIButton('×')
-  .setClass('close-button')
-  .setStyle('color', '#fff')
-  .setStyle('background', 'none')
-  .setStyle('border', 'none')
-  .setStyle('cursor', 'pointer')
-  .setStyle('font-size', '16px')
-  .onClick(() => {
-    this.container.dom.style.display = 'none';
-  });
-      
-      
-      this.container.add(closeBtn);
+    title.setClass('title');
+    title.setStyle('color', '#fff');
+    title.setStyle('font-weight', 'bold');
+    title.setStyle('margin', '0');
+    
+    const closeBtn = new UIButton('×')
+      .setClass('close-button')
+      .setStyle('color', '#fff')
+      .setStyle('background', 'none')
+      .setStyle('border', 'none')
+      .setStyle('cursor', 'pointer')
+      .setStyle('font-size', '16px')
+      .setStyle('padding', '4px 8px')
+      .onClick(() => {
+        this.container.dom.style.display = 'none';
+      });
+    
+    header.appendChild(title.dom);
+    header.appendChild(closeBtn.dom);
+    this.container.dom.appendChild(header);
+    
+    // Store header reference for dragging
+    this.dragHandle = header;
+    
     // Control buttons
     const controlsRow = new UIRow();
+    controlsRow.setStyle('padding', '8px');
     
-    const playBtn = new UIButton('Play').onClick(() => {
-      if (this.currentSystem) {
-        
-        this.currentSystem.play();
-      }
-    });
+    const playBtn = new UIButton('Play')
+      .setStyle('margin-right', '4px')
+      .onClick(() => {
+        if (this.currentSystem) {
+          this.currentSystem.play();
+        }
+      });
     
-    const pauseBtn = new UIButton('Pause').onClick(() => {
-      if (this.currentSystem) {
-        this.currentSystem.pause();
-      }
-    });
+    const pauseBtn = new UIButton('Pause')
+      .setStyle('margin-right', '4px')
+      .onClick(() => {
+        if (this.currentSystem) {
+          this.currentSystem.pause();
+        }
+      });
     
-    const stopBtn = new UIButton('Stop').onClick(() => {
-      if (this.currentSystem) {
-        this.currentSystem.stop();
-      }
-    });
+    const stopBtn = new UIButton('Stop')
+      .onClick(() => {
+        if (this.currentSystem) {
+          this.currentSystem.stop();
+        }
+      });
+    
     controlsRow.add(playBtn);
     controlsRow.add(pauseBtn);
     controlsRow.add(stopBtn);
@@ -86,12 +105,19 @@ const closeBtn = new UIButton('×')
     // Properties panel
     this.propertiesPanel = new UIPanel();
     this.propertiesPanel.setClass('properties');
+    this.propertiesPanel.setStyle('padding', '8px');
+    this.propertiesPanel.setStyle('max-height', '400px');
+    this.propertiesPanel.setStyle('overflow-y', 'auto');
     this.container.add(this.propertiesPanel);
     
     this.setupPropertiesUI();
   }
   
   setupPropertiesUI() {
+    // Clear existing properties
+    this.propertiesPanel.clear();
+    this.propertyInputs = {};
+    
     // Particle Count
     this.addNumberProperty('Particle Count', 'particleCount', 1000, 1, 10000, (value) => {
       if (this.currentSystem) {
@@ -175,12 +201,48 @@ const closeBtn = new UIButton('×')
         this.currentSystem.updateProperty('burstCount', value);
       }
     });
+    
+    // Play on Awake
+    this.addBooleanProperty('Play on Awake', 'playOnAwake', true, (value) => {
+      if (this.currentSystem) {
+        this.currentSystem.updateProperty('playOnAwake', value);
+      }
+    });
+    
+    // Loop
+    this.addBooleanProperty('Loop', 'loop', true, (value) => {
+      if (this.currentSystem) {
+        this.currentSystem.updateProperty('loop', value);
+      }
+    });
+    
+    // Simulation Space
+    this.addDropdownProperty('Simulation Space', 'simulationSpace', 'Local', ['Local', 'World'], (value) => {
+      if (this.currentSystem) {
+        this.currentSystem.setSimulationSpace(value);
+      }
+    });
   }
   
   addNumberProperty(label, property, defaultValue, min, max, onChange) {
     const row = new UIRow();
+    row.setStyle('margin-bottom', '4px');
+    row.setStyle('align-items', 'center');
+    
     const labelEl = new UIText(label).setWidth('120px');
+    labelEl.setStyle('color', '#ccc');
+    
     const input = new UINumber(defaultValue).setWidth('80px').setRange(min, max);
+    input.setStyle('margin-left', '8px');
+    
+    // Prevent dragging on input elements
+    input.dom.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
+    });
+    
+    input.dom.addEventListener('drag', (e) => {
+      e.stopPropagation();
+    });
     
     input.onChange(() => {
       onChange(input.getValue());
@@ -189,12 +251,26 @@ const closeBtn = new UIButton('×')
     row.add(labelEl);
     row.add(input);
     this.propertiesPanel.add(row);
+    
+    // Store reference to input
+    this.propertyInputs[property] = input;
   }
   
   addColorProperty(label, property, defaultValue, onChange) {
     const row = new UIRow();
+    row.setStyle('margin-bottom', '4px');
+    row.setStyle('align-items', 'center');
+    
     const labelEl = new UIText(label).setWidth('120px');
+    labelEl.setStyle('color', '#ccc');
+    
     const input = new UIColor().setHexValue(defaultValue);
+    input.setStyle('margin-left', '8px');
+    
+    // Prevent dragging on input elements
+    input.dom.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
+    });
     
     input.onChange(() => {
       onChange(input.getHexValue());
@@ -203,12 +279,26 @@ const closeBtn = new UIButton('×')
     row.add(labelEl);
     row.add(input);
     this.propertiesPanel.add(row);
+    
+    // Store reference to input
+    this.propertyInputs[property] = input;
   }
   
   addBooleanProperty(label, property, defaultValue, onChange) {
     const row = new UIRow();
+    row.setStyle('margin-bottom', '4px');
+    row.setStyle('align-items', 'center');
+    
     const labelEl = new UIText(label).setWidth('120px');
+    labelEl.setStyle('color', '#ccc');
+    
     const input = new UICheckbox(defaultValue);
+    input.setStyle('margin-left', '8px');
+    
+    // Prevent dragging on input elements
+    input.dom.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
+    });
     
     input.onChange(() => {
       onChange(input.getValue());
@@ -217,6 +307,83 @@ const closeBtn = new UIButton('×')
     row.add(labelEl);
     row.add(input);
     this.propertiesPanel.add(row);
+    
+    // Store reference to input
+    this.propertyInputs[property] = input;
+  }
+  
+  addDropdownProperty(label, property, defaultValue, options, onChange) {
+    const row = new UIRow();
+    row.setStyle('margin-bottom', '4px');
+    row.setStyle('align-items', 'center');
+    
+    const labelEl = new UIText(label).setWidth('120px');
+    labelEl.setStyle('color', '#ccc');
+    
+    const select = document.createElement('select');
+    select.style.marginLeft = '8px';
+    select.style.width = '80px';
+    select.style.background = '#333';
+    select.style.color = '#ccc';
+    select.style.border = '1px solid #555';
+    select.style.padding = '2px';
+    
+    options.forEach(option => {
+      const optionEl = document.createElement('option');
+      optionEl.value = option;
+      optionEl.textContent = option;
+      if (option === defaultValue) {
+        optionEl.selected = true;
+      }
+      select.appendChild(optionEl);
+    });
+    
+    // Prevent dragging on input elements
+    select.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
+    });
+    
+    select.addEventListener('change', () => {
+      onChange(select.value);
+    });
+    
+    row.add(labelEl);
+    row.dom.appendChild(select);
+    this.propertiesPanel.add(row);
+    
+    // Store reference to input
+    this.propertyInputs[property] = { getValue: () => select.value, setValue: (value) => select.value = value };
+  }
+  
+  // Update the editor with current system values
+  updateEditorValues() {
+    if (!this.currentSystem) return;
+    
+    const config = this.currentSystem.config;
+    
+    // Update all property inputs with current values
+    Object.keys(this.propertyInputs).forEach(property => {
+      const input = this.propertyInputs[property];
+      const value = config[property];
+      
+      if (input && value !== undefined) {
+        if (typeof input.setValue === 'function') {
+          input.setValue(value);
+        } else if (typeof input.getValue === 'function') {
+          // For custom inputs like dropdown
+          if (input.setValue) {
+            input.setValue(value);
+          }
+        } else {
+          // For UI elements with setValue method
+          if (property === 'color') {
+            input.setHexValue(value);
+          } else {
+            input.setValue(value);
+          }
+        }
+      }
+    });
   }
   
   createNewSystem() {
@@ -235,6 +402,7 @@ const closeBtn = new UIButton('×')
       
       // Set as current system
       this.currentSystem = system;
+      this.updateEditorValues();
       
       // Auto-play the system
       system.play();
@@ -249,21 +417,25 @@ const closeBtn = new UIButton('×')
     }
   }
   
-    selectSystem(object) {
-        // When a particle system object is selected, make it the current system
-        if (object?.userData?.particleSystem) {
-            const id = object.userData.systemId;
-            const system = getParticleSystem(id);
-            
-            if (system) {
-                this.currentSystem = system;
-                system.play();
-                console.log('Bound to ParticleSystem:', system);
-            } else {
-                console.warn('No registered system found for ID:', id);
-            }
-        }
+  selectSystem(object) {
+    // When a particle system object is selected, make it the current system
+    if (object?.userData?.particleSystem) {
+      const id = object.userData.systemId;
+      const system = getParticleSystem(id);
+      
+      if (system) {
+        this.currentSystem = system;
+        this.updateEditorValues(); // Update editor with system values
+        system.play();
+        console.log('Bound to ParticleSystem:', system);
+      } else {
+        console.warn('No registered system found for ID:', id);
+      }
+    } else {
+      // No particle system selected
+      this.currentSystem = null;
     }
+  }
   
   getContainer() {
     return this.container;
@@ -274,46 +446,61 @@ const closeBtn = new UIButton('×')
       cancelAnimationFrame(this.animationId);
     }
   }
+  
   showModal() {
-    console.log("Showing modal")
-  this.container.dom.style.position = 'fixed';
-  this.container.dom.style.top = '50%';
-  this.container.dom.style.left = '50%';
-  this.container.dom.style.transform = 'translate(-50%, -50%)';
-  this.container.dom.style.background = '#222';
-  this.container.dom.style.border = '1px solid #555';
-  this.container.dom.style.padding = '12px';
-  this.container.dom.style.zIndex = 1000;
-  this.container.dom.style.maxHeight = '80vh';
-  this.container.dom.style.overflowY = 'auto';
-  this.container.dom.style.display = '';
-  console.log(this.container.dom.style.display)
-  document.body.appendChild(this.container.dom);
-  this.makeDraggable(this.container.dom);
+    console.log("Showing modal");
+    this.container.dom.style.position = 'fixed';
+    this.container.dom.style.top = '50%';
+    this.container.dom.style.left = '50%';
+    this.container.dom.style.transform = 'translate(-50%, -50%)';
+    this.container.dom.style.background = '#222';
+    this.container.dom.style.border = '1px solid #555';
+    this.container.dom.style.borderRadius = '4px';
+    this.container.dom.style.padding = '0'; // Remove padding since header has its own
+    this.container.dom.style.zIndex = '1000';
+    this.container.dom.style.maxHeight = '80vh';
+    this.container.dom.style.width = '300px';
+    this.container.dom.style.display = 'block';
+    this.container.dom.style.boxShadow = '0 4px 20px rgba(0,0,0,0.5)';
+    
+    document.body.appendChild(this.container.dom);
+    this.makeDraggable();
+  }
+  
+  makeDraggable() {
+    let isDragging = false;
+    let offsetX = 0;
+    let offsetY = 0;
+    
+    // Only make the header draggable
+    this.dragHandle.addEventListener('mousedown', (e) => {
+      // Don't start dragging if clicking on the close button
+      if (e.target.textContent === '×') return;
+      
+      isDragging = true;
+      offsetX = e.clientX - this.container.dom.offsetLeft;
+      offsetY = e.clientY - this.container.dom.offsetTop;
+      this.dragHandle.style.cursor = 'grabbing';
+      
+      // Prevent text selection while dragging
+      e.preventDefault();
+    });
+    
+    document.addEventListener('mousemove', (e) => {
+      if (isDragging) {
+        this.container.dom.style.left = `${e.clientX - offsetX}px`;
+        this.container.dom.style.top = `${e.clientY - offsetY}px`;
+        this.container.dom.style.transform = 'none'; // Remove centering transform
+      }
+    });
+    
+    document.addEventListener('mouseup', () => {
+      if (isDragging) {
+        isDragging = false;
+        this.dragHandle.style.cursor = 'move';
+      }
+    });
+  }
 }
-makeDraggable(domElement) {
-  let isDragging = false;
-  let offsetX = 0;
-  let offsetY = 0;
 
-  domElement.addEventListener('mousedown', (e) => {
-    isDragging = true;
-    offsetX = e.clientX - domElement.offsetLeft;
-    offsetY = e.clientY - domElement.offsetTop;
-    domElement.style.cursor = 'move';
-  });
-
-  document.addEventListener('mousemove', (e) => {
-    if (isDragging) {
-      domElement.style.left = `${e.clientX - offsetX}px`;
-      domElement.style.top = `${e.clientY - offsetY}px`;
-    }
-  });
-
-  document.addEventListener('mouseup', () => {
-    isDragging = false;
-    domElement.style.cursor = 'default';
-  });
-}
-}
-export{ParticleSystemEditor}
+export { ParticleSystemEditor };
