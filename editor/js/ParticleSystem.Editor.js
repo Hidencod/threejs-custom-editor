@@ -1,5 +1,6 @@
 import { UIPanel, UIRow, UIHorizontalRule, UIText, UIButton, UINumber, UICheckbox, UIColor } from './libs/ui.js';
 import { getParticleSystem } from './ParticleSystem.Registery.js';
+import { CurveEditor,GradientEditor } from './ParticleSystem.FieldEditors.js';
 
 // Dedicated Particle System Editor Panel
 class ParticleSystemEditor {
@@ -9,7 +10,8 @@ class ParticleSystemEditor {
     this.updateFunction = null;
     this.animationId = null;
     this.propertyInputs = {}; // Store references to input elements
-    
+    this.curveEditors = {}; // Store curve editors
+    this.gradientEditors = {}; // Store gradient editors
     this.container = new UIPanel();
     this.container.setClass('ParticleSystemEditor');
     
@@ -222,6 +224,41 @@ class ParticleSystemEditor {
         this.currentSystem.setSimulationSpace(value);
       }
     });
+    this.addCurveProperty();
+    this.addColorOverLifetimeProperty()
+  }
+    addCurveProperty()
+    {
+      // === Size Over Lifetime Curve ===
+      const sizeCurveTitle = new UIText('Size Over Lifetime').setStyle('color', '#ccc').setStyle('margin', '8px 0');
+      this.propertiesPanel.add(sizeCurveTitle);
+
+      // Initialize curve editor
+      this.sizeCurveEditor = new CurveEditor({
+        label: 'Size Curve',
+        width: 260,
+        height: 120,
+        minValue: 0,
+        maxValue: 3,
+        onChange: (curve) => {
+          if (this.currentSystem) {
+            this.currentSystem.sizeOverTime = curve.getValue.bind(curve); // Save curve method
+          }
+        }
+      });
+
+      this.propertiesPanel.dom.appendChild(this.sizeCurveEditor.container.dom);
+    }
+  addColorOverLifetimeProperty() {
+    const colorGradient = new GradientEditor({
+      label: 'Color Over Lifetime',
+      onChange: (gradient) => {
+        if (this.currentSystem) {
+          this.currentSystem.colorOverTime = gradient.getColorOverTimeFunction(); // Save color method
+        }
+      }
+    });
+    this.propertiesPanel.dom.appendChild(colorGradient.container.dom);
   }
   
   addNumberProperty(label, property, defaultValue, min, max, onChange) {

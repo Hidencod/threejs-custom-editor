@@ -81,6 +81,7 @@ import * as THREE from 'three';
     this.ages = new Float32Array(this.particleCount);
     this.colors = new Float32Array(this.particleCount * 3);
     this.sizes = new Float32Array(this.particleCount);
+    this.alphas = new Float32Array(this.particleCount);
     
     // World space positions (for world space simulation)
     this.worldPositions = new Float32Array(this.particleCount * 3);
@@ -104,17 +105,19 @@ import * as THREE from 'three';
     this.velocityAttribute = new THREE.BufferAttribute(this.velocities, 3);
     this.colorAttribute = new THREE.BufferAttribute(this.colors, 3);
     this.sizeAttribute = new THREE.BufferAttribute(this.sizes, 1);
-    
+    this.alphaAttribute = new THREE.BufferAttribute(this.alphas, 1)
     // Set usage patterns for better GPU performance
     this.positionAttribute.setUsage(THREE.DynamicDrawUsage);
     this.velocityAttribute.setUsage(THREE.DynamicDrawUsage);
     this.colorAttribute.setUsage(THREE.DynamicDrawUsage);
-    this.sizeAttribute.setUsage(THREE.StaticDrawUsage);
+    this.sizeAttribute.setUsage(THREE.DynamicDrawUsage);
+    this.alphaAttribute.setUsage(THREE.DynamicDrawUsage);
     
     this.geometry.setAttribute('position', this.positionAttribute);
     this.geometry.setAttribute('color', this.colorAttribute);
     this.geometry.setAttribute('size', this.sizeAttribute);
-    
+    this.geometry.setAttribute('alpha', this.alphaAttribute);
+
     // Use GPU shaders for better performance
     if (this.config.useGPUShaders) {
       this.createGPUMaterial();
@@ -349,6 +352,8 @@ import * as THREE from 'three';
     const pos = this.positionAttribute.array;
     const vel = this.velocityAttribute.array;
     const colors = this.colorAttribute.array;
+    const sizes = this.sizeAttribute.array;
+    const alphas = this.alphaAttribute.array;
     
     for (let i = 0; i < this.particleCount; i++) {
       if (this.life[i] < this.maxLife) {
@@ -414,13 +419,31 @@ import * as THREE from 'three';
         colors[i3] = baseColor.r * fadeRatio;
         colors[i3 + 1] = baseColor.g * fadeRatio;
         colors[i3 + 2] = baseColor.b * fadeRatio;
+
+        const t = this.life[i] / this.maxLife;
+
+        if (this.sizeOverTime) {
+          const scale = this.sizeOverTime(t);
+          sizes[i] = this.sizeOverTime(t);
+        }
+        if (this.colorOverTime) {
+          const {color,alpha} = this.colorOverTime(t);
+          //const color = new THREE.Color(colorHex); // convert to THREE.Color
+
+          colors[i3] = color.r;
+          colors[i3 + 1] = color.g;
+          colors[i3 + 2] = color.b;
+          alphas[i] = alpha;
+          console.log(alpha)
+        }
       }
     }
     
     // Update geometry every frame
     this.positionAttribute.needsUpdate = true;
     this.colorAttribute.needsUpdate = true;
-    
+    this.sizeAttribute.needsUpdate = true;
+    this.alphaAttribute.needsUpdate = true;
     // Update shader uniforms
     if (this.config.useGPUShaders) {
       this.material.uniforms.uTime.value = this.time;
