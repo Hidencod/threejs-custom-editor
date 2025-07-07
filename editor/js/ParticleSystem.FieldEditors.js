@@ -769,8 +769,10 @@ class GradientEditor {
           r: Math.round(stop0.r + (stop1.r - stop0.r) * segmentT),
           g: Math.round(stop0.g + (stop1.g - stop0.g) * segmentT),
           b: Math.round(stop0.b + (stop1.b - stop0.b) * segmentT),
-          a: stop0.a + (stop1.a - stop0.a) * segmentT
+          a: (stop0.a ?? 1) + ((stop1.a ?? 1) - (stop0.a ?? 1)) * segmentT
+          
         };
+        
       }
     }
     
