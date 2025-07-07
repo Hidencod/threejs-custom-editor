@@ -41,7 +41,10 @@ function MenubarAdd( editor ) {
 	option.onClick(() => {
 		try {
 			const system = new ParticleSystem(
-				{"playOnAwake": true
+				{
+					"playOnAwake": true,
+					"loop":true,
+					"size":1
 				} 
 			);
 			const object = system.getObject3D();

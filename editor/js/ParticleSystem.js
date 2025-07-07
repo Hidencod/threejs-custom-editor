@@ -168,9 +168,11 @@ class ParticleSystem extends THREE.Object3D {
       uniforms: {
         uTime: { value: 0 },
         uOpacity: { value: this.config.opacity },
-        uSize: { value: this.config.size }
+        uSize: { value: this.config.size },
+        uBaseColor: { value: new THREE.Color(this.config.color) }
       },
       vertexShader: `
+      uniform vec3 uBaseColor;
         attribute float size;
         attribute float alpha;
         varying vec3 vColor;
@@ -180,7 +182,7 @@ class ParticleSystem extends THREE.Object3D {
         uniform float uSize;
         
         void main() {
-          vColor = color;
+          vColor = color * uBaseColor;
           vAlpha = alpha * uOpacity; // Combine per-particle alpha with global opacity
           
           // Size based on distance and individual size
@@ -811,9 +813,14 @@ class ParticleSystem extends THREE.Object3D {
       break;
 
     case 'color':
-      if (!this.config.useGPUShaders) {
-        this.material.color.setHex(value);
-      }
+      if (this.config.useGPUShaders) {
+    // Update default fallback color in shader (if supported)
+    if (this.material.uniforms?.uBaseColor) {
+      this.material.uniforms.uBaseColor.value.setHex(value);
+    }
+  } else {
+    this.material.color.setHex(value);
+  }
       break;
 
     case 'opacity':
