@@ -38,16 +38,23 @@ class ParticleSystem extends THREE.Object3D {
     if (this.config.sizeOverTimeCurve) {
       this.sizeOverTime = (t) => interpolateCurve(t, this.config.sizeOverTimeCurve);
     }
-
-    if (this.config.colorOverTimeCurve) {
-      this.colorOverTime = (t) => {
-        const point = interpolateColorCurve(t, this.config.colorOverTimeCurve);
-        return {
-          color: new THREE.Color(point.color),
-          alpha: point.alpha
-        };
-      };
-    }
+    this.colorOverTime = (t) => {
+  const p = interpolateColorCurve(t, this.config.colorOverTimeCurve);
+  return {
+    color: new THREE.Color(p.r / 255, p.g / 255, p.b / 255),
+    alpha: p.a
+  };
+};
+    // if (this.config.colorOverTimeCurve) {
+    //   this.colorOverTime = (t) => {
+    //     const point = interpolateColorCurve(t, this.config.colorOverTimeCurve);
+    //     //console.log(point)
+    //     return {
+    //       color: new THREE.Color(point.color),
+    //       alpha: point.a
+    //     };
+    //   };
+    // }
     this.particleCount = this.config.particleCount;
     this.maxLife = this.config.maxLife;
     this.isPlaying = false;
@@ -477,7 +484,7 @@ class ParticleSystem extends THREE.Object3D {
           colors[i3 + 1] = color.g;
           colors[i3 + 2] = color.b;
           alphas[i] = alpha;
-          console.log(this.colorOverTime(t))
+          //console.log('ColorOverTime →',color.r,color.g, color.b, alpha);
         } else {
           // Default color fade based on age
           const fadeRatio = 1.0 - ageRatio;
@@ -784,44 +791,74 @@ class ParticleSystem extends THREE.Object3D {
   }
 
   updateProperty(property, value) {
-    this.config[property] = value;
+  this.config[property] = value;
 
-    switch (property) {
-      case 'playOnAwake':
-        if (value && !this.hasStarted) {
-          this.play();
-        }
-        break;
-      case 'simulationSpace':
-        this.setSimulationSpace(value);
-        break;
-      case 'size':
-        if (this.config.useGPUShaders) {
-          this.material.uniforms.uSize.value = value;
-        } else {
-          this.material.size = value;
-        }
-        break;
-      case 'color':
-        if (!this.config.useGPUShaders) {
-          this.material.color.setHex(value);
-        }
-        break;
-      case 'opacity':
-        if (this.config.useGPUShaders) {
-          this.material.uniforms.uOpacity.value = value;
-        } else {
-          this.material.opacity = value;
-        }
-        break;
-      case 'gravity':
-        this.gravity.y = value;
-        break;
-      case 'maxLife':
-        this.maxLife = value;
-        break;
-    }
+  switch (property) {
+    case 'playOnAwake':
+      if (value && !this.hasStarted) this.play();
+      break;
+
+    case 'simulationSpace':
+      this.setSimulationSpace(value);
+      break;
+
+    case 'size':
+      if (this.config.useGPUShaders) {
+        this.material.uniforms.uSize.value = value;
+      } else {
+        this.material.size = value;
+      }
+      break;
+
+    case 'color':
+      if (!this.config.useGPUShaders) {
+        this.material.color.setHex(value);
+      }
+      break;
+
+    case 'opacity':
+      if (this.config.useGPUShaders) {
+        this.material.uniforms.uOpacity.value = value;
+      } else {
+        this.material.opacity = value;
+      }
+      break;
+
+    case 'gravity':
+      this.gravity.y = value;
+      break;
+
+    case 'maxLife':
+      this.maxLife = value;
+      break;
+
+    case 'particleCount':
+      this.updateParticleCount(value);
+      break;
+
+    // No runtime logic needed, but persist these
+    case 'emissionRate':
+    case 'burst':
+    case 'burstCount':
+    case 'startSpeed':
+    case 'speedVariation':
+    case 'spread':
+    case 'duration':
+    case 'loop':
+    case 'autoDestroy':
+    case 'prewarm':
+    case 'stopAction':
+    case 'updateFrequency':
+    case 'useGPUShaders':
+      // value already saved to config
+      break;
+
+    default:
+      console.warn(`Unhandled property: ${property}`);
   }
+  
+}
+
 
   getObject3D() {
     return this;
@@ -843,26 +880,47 @@ class ParticleSystem extends THREE.Object3D {
     };
   }
 
-  toJSON() {
-    return {
-      config: {
-        ...this.config,
-        sizeOverTimeCurve: this.config.sizeOverTimeCurve,
-        colorOverTimeCurve: this.config.colorOverTimeCurve
-      }
-    };
-  }
+  toJSON(meta) {
+  const base = super.toJSON(meta);
+  const data = base.object;
+
+  data.type = 'ParticleSystem';
+  data.config = { ...this.config };
+
+  return base;
+}
+
   static fromJSON(data) {
-    const system = new ParticleSystem(data.config);
-    // Runtime function rebuild
-    if (data.config.sizeOverTimeCurve) {
-      system.sizeOverTime = (t) => interpolateCurve(t, data.config.sizeOverTimeCurve);
-    }
-    if (data.config.colorOverTimeCurve) {
-      system.colorOverTime = (t) => interpolateColorCurve(t, data.config.colorOverTimeCurve);
-    }
-    return system;
+  const system = new ParticleSystem(data.config);
+
+  system.uuid = data.uuid;
+  system.name = data.name;
+
+  if (Array.isArray(data.position)) system.position.fromArray(data.position);
+  if (Array.isArray(data.rotation)) system.rotation.fromArray(data.rotation);
+  if (Array.isArray(data.scale))    system.scale.fromArray(data.scale);
+
+  if (data.config.sizeOverTimeCurve) {
+    system.config.sizeOverTimeCurve = data.config.sizeOverTimeCurve;
+    system.sizeOverTime = (t) => interpolateCurve(t, data.config.sizeOverTimeCurve);
   }
+
+  if (data.config.colorOverTimeCurve) {
+  system.config.colorOverTimeCurve = data.config.colorOverTimeCurve;
+  console.log(data.config.colorOverTimeCurve)
+ system.colorOverTime = (t) => {
+  const p = interpolateColorCurve(t, system.config.colorOverTimeCurve);
+  return {
+    color: new THREE.Color(p.r / 255, p.g / 255, p.b / 255),
+    alpha: p.a
+  };
+};
+}
+
+
+  return system;
+}
+
 }
 function interpolateCurve(t, curve) {
   for (let i = 1; i < curve.length; i++) {
@@ -876,21 +934,34 @@ function interpolateCurve(t, curve) {
   return curve[curve.length - 1].value;
 }
 
-function interpolateColorCurve(t, curve) {
-  for (let i = 1; i < curve.length; i++) {
-    const a = curve[i - 1];
-    const b = curve[i];
-    if (t <= b.t) {
-      const ratio = (t - a.t) / (b.t - a.t);
-      const c1 = new THREE.Color(a.color);
-      const c2 = new THREE.Color(b.color);
-      const color = c1.lerp(c2, ratio);
-      const alpha = a.alpha + (b.alpha - a.alpha) * ratio;
-      return { color, alpha };
+function interpolateColorCurve(t, stops) {
+  if (!Array.isArray(stops) || stops.length === 0) {
+    return { r: 255, g: 255, b: 255, a: 1 }; // fallback white
+  }
+
+  stops.sort((a, b) => a.t - b.t);
+  t = Math.max(0, Math.min(1, t));
+
+  for (let i = 0; i < stops.length - 1; i++) {
+    const s0 = stops[i];
+    const s1 = stops[i + 1];
+
+    if (t >= s0.t && t <= s1.t) {
+      const u = (t - s0.t) / (s1.t - s0.t);
+      return {
+        r: s0.r + (s1.r - s0.r) * u,
+        g: s0.g + (s1.g - s0.g) * u,
+        b: s0.b + (s1.b - s0.b) * u,
+        a: s0.a + (s1.a - s0.a) * u
+      };
     }
   }
-  return curve[curve.length - 1];
+
+  // t is exactly 1 or above last stop
+  const last = stops[stops.length - 1];
+  return { r: last.r, g: last.g, b: last.b, a: last.a };
 }
+
 
 export { ParticleSystem };
 

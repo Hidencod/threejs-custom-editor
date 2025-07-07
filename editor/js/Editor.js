@@ -141,6 +141,23 @@ function Editor() {
 	this.addCamera( this.camera );
 	BootAnimation.setProgress(90, 'Finalizing Editor...');
 }
+const originalParseObject = THREE.ObjectLoader.prototype.parseObject;
+
+THREE.ObjectLoader.prototype.parseObject = function (data, parent) {
+  if (data.type === 'ParticleSystem') {
+    const obj = ParticleSystem.fromJSON(data);
+	console.log(data)
+    // ✅ Only add if parent is a real Object3D
+    if (parent && typeof parent.add === 'function') {
+      parent.add(obj);
+	  
+    }
+
+    return obj;
+  }
+
+  return originalParseObject.call(this, data, parent);
+};
 
 Editor.prototype = {
 
@@ -643,6 +660,7 @@ Editor.prototype = {
 	fromJSON: async function ( json ) {
 
 		var loader = new THREE.ObjectLoader();
+
 		var camera = await loader.parseAsync( json.camera );
 
 		const existingUuid = this.camera.uuid;
@@ -660,6 +678,7 @@ Editor.prototype = {
 		this.history.fromJSON( json.history );
 		this.scripts = json.scripts;
 		const scene = await loader.parseAsync( json.scene );
+
 		scene.traverse(child => {
 		if (child.userData.particleSystem && child.userData.config) {
 			const config = child.userData.config;

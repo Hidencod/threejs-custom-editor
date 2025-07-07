@@ -13,6 +13,7 @@ import { SetShadowValueCommand } from './commands/SetShadowValueCommand.js';
 
 import { SidebarObjectAnimation } from './Sidebar.Object.Animation.js';
 import { ParticleSystemEditor } from './ParticleSystem.Editor.js';
+import { ParticleSystem } from './ParticleSystem.js';
 
 function SidebarObject(editor) {
 
@@ -380,19 +381,17 @@ function SidebarObject(editor) {
 	const editParticleButton = new UIButton('Edit Particle System').onClick(() => {
 		const selected = editor.selected;
 
-		if (selected?.userData?.particleSystem) {
+		if (selected instanceof ParticleSystem) {
 			if (!systemeditor) {
 				systemeditor = new ParticleSystemEditor(editor);
-				systemeditor.selectSystem(editor.selected);
-				systemeditor.showModal(); // ✅ floating editor!
-			} else {
-				systemeditor.selectSystem(editor.selected);
-				systemeditor.showModal(); 
 			}
+			systemeditor.selectSystem(selected);
+			systemeditor.showModal();
 		} else {
 			alert('Please select a Particle System object first.');
 		}
 	});
+
 
 	editParticleSystemRow.add(new UIText('Particle System').setClass('Label'));
 	editParticleSystemRow.add(editParticleButton);
@@ -461,7 +460,7 @@ function SidebarObject(editor) {
 	function update() {
 
 		const object = editor.selected;
-
+		
 		if (object !== null) {
 
 			const newPosition = new THREE.Vector3(objectPositionX.getValue(), objectPositionY.getValue(), objectPositionZ.getValue());
@@ -750,7 +749,7 @@ function SidebarObject(editor) {
 	// events
 
 	signals.objectSelected.add(function (object) {
-
+		console.log(object)
 		if (object !== null) {
 
 			container.setDisplay('block');

@@ -337,21 +337,16 @@ class CurveEditor {
 
   
   // Get the curve as an array of values
-  getCurveData(resolution = 100) {
-    const data = [];
-    for (let i = 0; i <= resolution; i++) {
-      const t = i / resolution;
-      data.push({ t, value: this.getValue(t) });
-    }
-    return data;
-  }
-  
-  // Set curve from data
+ 
   setCurveData(points) {
-    this.points = points.map(p => ({ ...p, type: 'linear' }));
-    this.draw();
-    this.onChange(this);
-  }
+  this.points = points.map(p => ({ ...p, type: p.type || 'linear' }));
+  this.draw();
+  this.onChange(this); // <-- pass full editor so you still have getValue(t)
+}
+
+getCurveData() {
+  return this.points.map(p => ({ t: p.t, value: p.value, type: p.type }));
+}
 }
 
 // Gradient Editor with color stops
@@ -803,7 +798,7 @@ class GradientEditor {
     this.activeStop = null;
     this.updateControls();
     this.draw();
-    this.onChange(this);
+    this.onChange(this.getGradientData());
   }
   
   // Get CSS gradient string
