@@ -11,8 +11,6 @@ class CurveEditor {
       curveColor: config.curveColor || '#0f0',
       pointColor: config.pointColor || '#fff',
       label: config.label || 'Curve',
-      minValue: config.minValue || 0,
-      maxValue: config.maxValue || 1,
       ...config
     };
     
@@ -579,7 +577,6 @@ class GradientEditor {
   }
   
   setupEvents() {
-    // Canvas events
     this.canvas.addEventListener('mousedown', (e) => {
       const rect = this.canvas.getBoundingClientRect();
       const tx = (e.clientX - rect.left) / rect.width;
@@ -807,7 +804,7 @@ class GradientEditor {
     const stops = this.colorStops.map(stop => 
       `rgba(${stop.r}, ${stop.g}, ${stop.b}, ${stop.a}) ${(stop.t * 100).toFixed(1)}%`
     );
-    return `linear-gradient(to right, ${stops.join(', ')})`;
+    return `linear-gradient(to right, ${stops.join(', ')}`;
   }
   
   // Get Three.js compatible color array
@@ -839,3 +836,5 @@ class GradientEditor {
 
 // Export both classes
 export { CurveEditor, GradientEditor };
+
+

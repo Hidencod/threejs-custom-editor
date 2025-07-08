@@ -19,7 +19,8 @@ class ParticleSystem extends THREE.Object3D {
       burstCount: config.burstCount || 1000,
       updateFrequency: config.updateFrequency || 1,
       useGPUShaders: config.useGPUShaders !== false,
-
+      useSizeOverTime: config.useSizeOverTime ?? false,
+  useColorOverTime: config.useColorOverTime ?? false,
       // Simulation Space - Unity-like feature
       simulationSpace: config.simulationSpace || 'Local', // 'Local' or 'World'
 
@@ -64,7 +65,8 @@ class ParticleSystem extends THREE.Object3D {
     this.lastEmission = 0;
     this.isParticleSystem = true;
     this.frameCount = 0;
-
+    this.useColorOverTime = this.config.useColorOverTime||false;
+    this.useSizeOverTime = this.config.useSizeOverTime||false;
     // World space tracking
     this.worldPositionMatrix = new THREE.Matrix4();
     this.worldPosition = new THREE.Vector3();
@@ -475,18 +477,19 @@ class ParticleSystem extends THREE.Object3D {
         const t = this.life[i] / this.maxLife;
 
         // Apply size over time if defined
-        if (this.sizeOverTime) {
+        if (this.sizeOverTime && this.useSizeOverTime) {
           sizes[i] = this.sizeOverTime(t);
         }
 
         // Apply color over time if defined
-        if (this.colorOverTime) {
+        if (this.colorOverTime&&this.useColorOverTime) {
           const { color, alpha } = this.colorOverTime(t);
           colors[i3] = color.r;
           colors[i3 + 1] = color.g;
           colors[i3 + 2] = color.b;
           alphas[i] = alpha;
           //console.log('ColorOverTime →',color.r,color.g, color.b, alpha);
+          console.log('not fading')
         } else {
           // Default color fade based on age
           const fadeRatio = 1.0 - ageRatio;
@@ -496,6 +499,8 @@ class ParticleSystem extends THREE.Object3D {
           colors[i3 + 1] = baseColor.g * fadeRatio;
           colors[i3 + 2] = baseColor.b * fadeRatio;
           alphas[i] = this.config.opacity * fadeRatio;
+          
+          console.log('fading')
         }
       }
     }

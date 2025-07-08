@@ -214,7 +214,7 @@ class ParticleSystemEditor {
     activeBtn.setStyle('border-color', '#3b82f6');
   }
 
-  createCollapsibleSection(title, content) {
+  createCollapsibleSection(title, content, hasToggle = false, initialToggleState = false, onToggleChange = null) {
     const section = document.createElement('div');
     section.style.borderBottom = '1px solid #374151';
 
@@ -235,20 +235,95 @@ class ParticleSystemEditor {
     titleEl.style.fontWeight = '600';
     titleEl.style.color = '#ffffff';
 
+    const leftSide = document.createElement('div');
+    leftSide.style.display = 'flex';
+    leftSide.style.alignItems = 'center';
+    leftSide.style.gap = '10px';
+
+    const rightSide = document.createElement('div');
+    rightSide.style.display = 'flex';
+    rightSide.style.alignItems = 'center';
+    rightSide.style.gap = '10px';
+
     const expandIcon = document.createElement('span');
     expandIcon.textContent = '▼';
     expandIcon.style.fontSize = '12px';
     expandIcon.style.color = '#9ca3af';
     expandIcon.style.transition = 'transform 0.2s ease';
 
-    header.appendChild(titleEl);
-    header.appendChild(expandIcon);
+    let toggleInput = null;
+    let toggleLabel = null;
+    let toggleThumb = null;
+
+    if (hasToggle) {
+      const toggleContainer = document.createElement('div');
+      toggleContainer.style.position = 'relative';
+      toggleContainer.style.display = 'inline-block';
+      toggleContainer.style.width = '44px';
+      toggleContainer.style.height = '24px';
+
+      toggleInput = document.createElement('input');
+      toggleInput.type = 'checkbox';
+      toggleInput.id = `toggle-${title.replace(/\s+/g, '')}`;
+      toggleInput.checked = initialToggleState;
+      toggleInput.style.opacity = '0';
+      toggleInput.style.width = '0';
+      toggleInput.style.height = '0';
+
+      toggleLabel = document.createElement('label');
+      toggleLabel.setAttribute('for', toggleInput.id);
+      toggleLabel.style.position = 'absolute';
+      toggleLabel.style.cursor = 'pointer';
+      toggleLabel.style.top = '0';
+      toggleLabel.style.left = '0';
+      toggleLabel.style.right = '0';
+      toggleLabel.style.bottom = '0';
+      toggleLabel.style.backgroundColor = initialToggleState ? '#3b82f6' : '#374151';
+      toggleLabel.style.borderRadius = '12px';
+      toggleLabel.style.transition = 'background-color 0.2s ease';
+
+      toggleThumb = document.createElement('div');
+      toggleThumb.style.position = 'absolute';
+      toggleThumb.style.content = '';
+      toggleThumb.style.height = '18px';
+      toggleThumb.style.width = '18px';
+      toggleThumb.style.left = initialToggleState ? '23px' : '3px';
+      toggleThumb.style.bottom = '3px';
+      toggleThumb.style.backgroundColor = '#ffffff';
+      toggleThumb.style.borderRadius = '50%';
+      toggleThumb.style.transition = 'transform 0.2s ease, left 0.2s ease';
+
+      toggleLabel.appendChild(toggleThumb);
+      toggleContainer.appendChild(toggleInput);
+      toggleContainer.appendChild(toggleLabel);
+      leftSide.appendChild(toggleContainer); // Append to leftSide
+      section.__toggle = toggleInput;
+      toggleInput.addEventListener('change', () => {
+        const isChecked = toggleInput.checked;
+        toggleLabel.style.backgroundColor = isChecked ? '#3b82f6' : '#374151';
+        toggleThumb.style.left = isChecked ? '23px' : '3px';
+        contentDiv.style.maxHeight = isChecked ? contentDiv.scrollHeight + 'px' : '0';
+        contentDiv.style.padding = isChecked ? '0 20px 16px' : '0 20px';
+        contentDiv.style.opacity = isChecked ? '1' : '0.2'; // Reduced opacity when disabled
+        contentDiv.style.pointerEvents = isChecked ? 'auto' : 'none'; // Disable interactions
+        expandIcon.style.transform = isChecked ? 'rotate(0deg)' : 'rotate(-90deg)';
+        if (typeof onToggleChange === 'function') {
+          onToggleChange(isChecked);
+        }
+      });
+    }
+
+    leftSide.appendChild(titleEl); // Append title to leftSide
+    rightSide.appendChild(expandIcon);
+
+    header.appendChild(leftSide);
+    header.appendChild(rightSide);
 
     const contentDiv = document.createElement('div');
     contentDiv.style.padding = '0 20px 16px';
     contentDiv.style.backgroundColor = '#1a1a1a';
     contentDiv.style.overflow = 'hidden';
-    contentDiv.style.transition = 'max-height 0.3s ease';
+    contentDiv.style.transition = 'max-height 0.3s ease, opacity 0.3s ease';
     contentDiv.appendChild(content);
 
     // Add hover effect to header
@@ -259,9 +334,9 @@ class ParticleSystemEditor {
       header.style.backgroundColor = '#2d2d2d';
     });
 
-    // Toggle functionality
+    // Toggle functionality for header click (independent of toggle switch)
     const sectionId = title.replace(/\s+/g, '');
-    let isCollapsed = this.collapsedSections[sectionId] || false;
+    let isCollapsed = this.collapsedSections[sectionId] || !initialToggleState; // If hasToggle, start collapsed if initialToggleState is false
 
     const updateCollapsedState = () => {
       if (isCollapsed) {
@@ -273,6 +348,13 @@ class ParticleSystemEditor {
         contentDiv.style.padding = '0 20px 16px';
         expandIcon.style.transform = 'rotate(0deg)';
       }
+      if (hasToggle) {
+        contentDiv.style.opacity = toggleInput.checked ? '1' : '0.5';
+        contentDiv.style.pointerEvents = toggleInput.checked ? 'auto' : 'none';
+      } else {
+        contentDiv.style.opacity = '1';
+        contentDiv.style.pointerEvents = 'auto';
+      }
     };
 
     header.addEventListener('click', () => {
@@ -281,7 +363,30 @@ class ParticleSystemEditor {
       updateCollapsedState();
     });
 
-    updateCollapsedState();
+    // Initial state setup
+    if (hasToggle) {
+      toggleInput.checked = initialToggleState;
+      toggleLabel.style.backgroundColor = initialToggleState ? '#3b82f6' : '#374151';
+      toggleThumb.style.left = initialToggleState ? '23px' : '3px';
+      contentDiv.style.opacity = initialToggleState ? '1' : '0.5';
+      contentDiv.style.pointerEvents = initialToggleState ? 'auto' : 'none';
+      if (!initialToggleState) {
+        contentDiv.style.maxHeight = '0';
+        contentDiv.style.padding = '0 20px';
+        expandIcon.style.transform = 'rotate(-90deg)';
+      }
+    } else {
+      if (!initialToggleState) {
+        contentDiv.style.maxHeight = '0';
+        contentDiv.style.padding = '0 20px';
+        expandIcon.style.transform = 'rotate(-90deg)';
+      } else {
+        contentDiv.style.maxHeight = contentDiv.scrollHeight + 'px'; // Ensure non-toggled sections are open
+        contentDiv.style.opacity = '1';
+        contentDiv.style.pointerEvents = 'auto';
+        expandIcon.style.transform = 'rotate(0deg)';
+      }
+    }
 
     section.appendChild(header);
     section.appendChild(contentDiv);
@@ -301,39 +406,35 @@ class ParticleSystemEditor {
     const simulationContent = document.createElement('div');
     const curvesContent = document.createElement('div');
     const gradientContent = document.createElement('div');
+
     // Particle Properties Section
     this.addNumberPropertyToContainer(particlePropsContent, 'Particle Count', 'particleCount', 1000, 1, 10000, (value) => {
       if (this.currentSystem) {
         this.currentSystem.updateParticleCount(value);
-
       }
     });
 
     this.addNumberPropertyToContainer(particlePropsContent, 'Max Life', 'maxLife', 3, 0.1, 10, (value) => {
       if (this.currentSystem) {
         this.currentSystem.updateProperty('maxLife', value);
-
       }
     });
 
     this.addNumberPropertyToContainer(particlePropsContent, 'Size', 'size', 0.1, 0.01, 2, (value) => {
       if (this.currentSystem) {
         this.currentSystem.updateProperty('size', value);
-
       }
     });
 
     this.addNumberPropertyToContainer(particlePropsContent, 'Opacity', 'opacity', 0.8, 0, 1, (value) => {
       if (this.currentSystem) {
         this.currentSystem.updateProperty('opacity', value);
-
       }
     });
 
     this.addColorPropertyToContainer(particlePropsContent, 'Color', 'color', 0x66ccff, (value) => {
       if (this.currentSystem) {
         this.currentSystem.updateProperty('color', value);
-
       }
     });
 
@@ -341,28 +442,24 @@ class ParticleSystemEditor {
     this.addNumberPropertyToContainer(motionPhysicsContent, 'Start Speed', 'startSpeed', 5, 0, 50, (value) => {
       if (this.currentSystem) {
         this.currentSystem.updateProperty('startSpeed', value);
-
       }
     });
 
     this.addNumberPropertyToContainer(motionPhysicsContent, 'Speed Variation', 'speedVariation', 5, 0, 20, (value) => {
       if (this.currentSystem) {
         this.currentSystem.updateProperty('speedVariation', value);
-
       }
     });
 
     this.addNumberPropertyToContainer(motionPhysicsContent, 'Gravity', 'gravity', -9.8, -50, 50, (value) => {
       if (this.currentSystem) {
         this.currentSystem.updateProperty('gravity', value);
-
       }
     });
 
     this.addNumberPropertyToContainer(motionPhysicsContent, 'Spread', 'spread', Math.PI / 6, 0, Math.PI, (value) => {
       if (this.currentSystem) {
         this.currentSystem.updateProperty('spread', value);
-
       }
     });
 
@@ -371,14 +468,12 @@ class ParticleSystemEditor {
       if (this.currentSystem) {
         console.log(value)
         this.currentSystem.updateProperty('emissionRate', value);
-
       }
     });
 
     this.addBooleanPropertyToContainer(emissionContent, 'Burst Mode', 'burst', false, (value) => {
       if (this.currentSystem) {
         this.currentSystem.updateProperty('burst', value);
-
       }
     });
 
@@ -391,7 +486,6 @@ class ParticleSystemEditor {
     this.addBooleanPropertyToContainer(emissionContent, 'Play on Awake', 'playOnAwake', true, (value) => {
       if (this.currentSystem) {
         this.currentSystem.updateProperty('playOnAwake', value);
-
       }
     });
 
@@ -399,7 +493,6 @@ class ParticleSystemEditor {
       if (this.currentSystem) {
         console.log(value)
         this.currentSystem.updateProperty('loop', value);
-
       }
     });
 
@@ -407,7 +500,6 @@ class ParticleSystemEditor {
     this.addDropdownPropertyToContainer(simulationContent, 'Simulation Space', 'simulationSpace', 'Local', ['Local', 'World'], (value) => {
       if (this.currentSystem) {
         this.currentSystem.setSimulationSpace(value);
-
       }
     });
 
@@ -420,8 +512,36 @@ class ParticleSystemEditor {
     this.propertiesPanel.dom.appendChild(this.createCollapsibleSection('Motion & Physics', motionPhysicsContent));
     this.propertiesPanel.dom.appendChild(this.createCollapsibleSection('Emission Settings', emissionContent));
     this.propertiesPanel.dom.appendChild(this.createCollapsibleSection('Simulation Settings', simulationContent));
-    this.propertiesPanel.dom.appendChild(this.createCollapsibleSection('Size Over Lifetime', curvesContent));
-    this.propertiesPanel.dom.appendChild(this.createCollapsibleSection('Color Over Lifetime', gradientContent));
+    const sizeOverLifetimeToggle = this.createCollapsibleSection(
+      'Size Over Lifetime',
+      curvesContent,
+      true,
+      false,
+      (enabled) => {
+        this.currentSystem.useSizeOverTime = enabled;
+        this.updateSizeCurveSystem();
+        this.editor.signals.sceneGraphChanged.dispatch();
+      }
+    );
+
+    // Register the toggle in propertyInputs
+    this.propertyInputs.useSizeOverTime = {
+      getValue: () => sizeOverLifetimeToggle.__toggle?.checked,
+      setValue: (value) => {
+        const toggle = sizeOverLifetimeToggle.__toggle;
+        if (toggle) {
+          toggle.checked = value;
+          toggle.dispatchEvent(new Event('change')); // simulate user toggle
+        }
+      }
+    };
+
+    // Add to UI
+    this.propertiesPanel.dom.appendChild(sizeOverLifetimeToggle);
+    this.propertiesPanel.dom.appendChild(this.createCollapsibleSection('Color Over Lifetime', gradientContent, true, false, (enabled) => {
+      this.currentSystem.useColorOverTime = enabled;
+      this.editor.signals.sceneGraphChanged.dispatch();
+    })); // Add toggle, initially off
   }
 
   addCurvePropertyToContainer(container) {
@@ -433,15 +553,14 @@ class ParticleSystemEditor {
       minValue: 0,
       maxValue: 3,
       onChange: () => {
-        if (this.currentSystem) {
-          const curvePoints = this.sizeCurveEditor.getCurveData(); // ✅ the right method
-          this.currentSystem.config.sizeOverTimeCurve = curvePoints;
-          this.currentSystem.sizeOverTime = (t) => interpolateCurve(t, curvePoints);
-          this.editor.signals.sceneGraphChanged.dispatch();
-        }
+        // if (this.currentSystem) {
+        //   const curvePoints = this.sizeCurveEditor.getCurveData(); // ✅ the right method
+        //   this.currentSystem.config.sizeOverTimeCurve = curvePoints;
+        //   this.currentSystem.sizeOverTime = (t) => interpolateCurve(t, curvePoints);
+        //   this.editor.signals.sceneGraphChanged.dispatch();
+        // }
+        this.updateSizeCurveSystem();
       }
-
-
     });
 
     // Style the curve editor container
@@ -455,26 +574,35 @@ class ParticleSystemEditor {
 
     container.appendChild(this.sizeCurveEditor.container.dom);
   }
+  updateSizeCurveSystem() {
+    if (this.currentSystem && this.currentSystem.useSizeOverTime) {
+      const curvePoints = this.sizeCurveEditor.getCurveData();
+      this.currentSystem.config.sizeOverTimeCurve = curvePoints;
+      this.currentSystem.sizeOverTime = (t) => interpolateCurve(t, curvePoints);
+      this.editor.signals.sceneGraphChanged.dispatch();
+    }
+  }
 
   addColorOverLifetimePropertyToContainer(container) {
     this.colorGradient = new GradientEditor({
       label: 'Color Over Lifetime',
       onChange: () => {
-        if (this.currentSystem) {
-          const gradientData = this.colorGradient.getGradientData();
+        //   if (this.currentSystem) {
+        //     const gradientData = this.colorGradient.getGradientData();
 
-          this.currentSystem.config.colorOverTimeCurve = gradientData;
+        //     this.currentSystem.config.colorOverTimeCurve = gradientData;
 
-          this.currentSystem.colorOverTime = (t) => {
-            const p = interpolateColorCurve(t, gradientData);
-            return {
-              color: new THREE.Color(p.r / 255, p.g / 255, p.b / 255),
-              alpha: p.a
-            };
-          };
+        //     this.currentSystem.colorOverTime = (t) => {
+        //       const p = interpolateColorCurve(t, gradientData);
+        //       return {
+        //         color: new THREE.Color(p.r / 255, p.g / 255, p.b / 255),
+        //         alpha: p.a
+        //       };
+        //     };
 
-          this.editor.signals.sceneGraphChanged.dispatch();
-        }
+        //     this.editor.signals.sceneGraphChanged.dispatch();
+        //   }
+        this.updateColorGradientSystem();
       }
     });
 
@@ -487,6 +615,22 @@ class ParticleSystemEditor {
     }
 
     container.appendChild(this.colorGradient.container.dom);
+  }
+  updateColorGradientSystem() {
+    if (this.currentSystem && this.currentSystem.useColorOverTime) {
+      const gradientData = this.colorGradient.getGradientData();
+
+      this.currentSystem.config.colorOverTimeCurve = gradientData;
+      this.currentSystem.colorOverTime = (t) => {
+        const p = interpolateColorCurve(t, gradientData);
+        return {
+          color: new THREE.Color(p.r / 255, p.g / 255, p.b / 255),
+          alpha: p.a
+        };
+      };
+
+      this.editor.signals.sceneGraphChanged.dispatch();
+    }
   }
 
   addNumberPropertyToContainer(container, label, property, defaultValue, min, max, onChange) {
@@ -950,14 +1094,14 @@ class ParticleSystemEditor {
       select.appendChild(optionEl);
     });
 
-    // Prevent dragging on input elements
-    select.addEventListener('mousedown', (e) => {
-      e.stopPropagation();
-    });
-
     select.addEventListener('change', () => {
       onChange(select.value);
       editor.signals.sceneGraphChanged.dispatch();
+    });
+
+    // Prevent dragging on input elements
+    select.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
     });
 
     row.add(labelEl);
@@ -970,35 +1114,40 @@ class ParticleSystemEditor {
 
   // Update the editor with current system values
   updateEditorValues() {
-  if (!this.currentSystem) return;
+    if (!this.currentSystem) return;
 
-  const config = this.currentSystem.config;
+    const config = this.currentSystem.config;
 
-  // 1. Update UI property fields
-  Object.keys(this.propertyInputs).forEach(property => {
-    const input = this.propertyInputs[property];
-    const value = config[property];
-
-    if (input && value !== undefined) {
-      if (typeof input.setValue === 'function') {
-        input.setValue(value);
-      } else if (property === 'color' && input.setHexValue) {
-        input.setHexValue(value);
+    // 1. Update UI property fields
+    Object.keys(this.propertyInputs).forEach(property => {
+      const input = this.propertyInputs[property];
+      const value = config[property];
+      
+      if (input && value !== undefined) {
+        if (typeof input.setValue === 'function') {
+          input.setValue(value);
+          console.log(property, value)
+        } else if (property === 'color' && input.setHexValue) {
+          input.setHexValue(value);
+        }
       }
+    });
+
+    // 2. Update Size Over Lifetime curve editor
+    if (this.sizeCurveEditor && config.sizeOverTimeCurve) {
+      if (this.propertyInputs.useSizeOverTime !== undefined) {
+        this.propertyInputs.useSizeOverTime.setValue(this.currentSystem.config.useSizeOverTime);
+        console.log(this.propertyInputs.useSizeOverTime.getValue())
+      }
+      this.sizeCurveEditor.setCurveData(config.sizeOverTimeCurve);
     }
-  });
 
-  // 2. Update Size Over Lifetime curve editor
-  if (this.sizeCurveEditor && config.sizeOverTimeCurve) {
-    this.sizeCurveEditor.setCurveData(config.sizeOverTimeCurve);
-  }
+    // 3. Update Color Over Lifetime gradient editor
+    if (this.colorGradient && config.colorOverTimeCurve) {
 
-  // 3. Update Color Over Lifetime gradient editor
-  if (this.colorGradient && config.colorOverTimeCurve) {
-   
-    this.colorGradient.setGradientData(config.colorOverTimeCurve);
+      this.colorGradient.setGradientData(config.colorOverTimeCurve);
+    }
   }
-}
 
 
   createNewSystem() {
@@ -1188,6 +1337,5 @@ function interpolateColorCurve(t, stops) {
 }
 
 export { ParticleSystemEditor };
-
 
 
