@@ -523,7 +523,6 @@ class ParticleSystemEditor {
       (enabled) => {
         this.currentSystem.useSizeOverTime = enabled;
         this.currentSystem.config.useSizeOverTime = enabled;
-        //this.updateSizeCurveSystem();
         this.editor.signals.sceneGraphChanged.dispatch();
       }
     );
@@ -543,10 +542,29 @@ class ParticleSystemEditor {
 
     // Add to UI
     this.propertiesPanel.dom.appendChild(sizeOverLifetimeToggle);
-    this.propertiesPanel.dom.appendChild(this.createCollapsibleSection('Color Over Lifetime', gradientContent, true, false, (enabled) => {
-      this.currentSystem.useColorOverTime = enabled;
-      this.editor.signals.sceneGraphChanged.dispatch();
-    })); // Add toggle, initially off
+    const colorOverLifeTimeToggle = this.createCollapsibleSection(
+      'Color Over Lifetime',
+      gradientContent,
+      true,
+      false,
+      (enabled) => {
+        this.currentSystem.useColorOverTime = enabled;
+        this.editor.signals.sceneGraphChanged.dispatch();
+      }
+    ); // Add toggle, initially off
+    this.propertyInputs.useColorOverTime = {
+      getValue: () => colorOverLifeTimeToggle.__toggle?.checked,
+      setValue: (value) => {
+        const toggle = colorOverLifeTimeToggle.__toggle;
+        if (toggle) {
+          toggle.checked = value;
+          toggle.dispatchEvent(new Event('change')); // simulate user toggle
+          
+          
+        }
+      }
+    };
+    this.propertiesPanel.dom.appendChild(colorOverLifeTimeToggle);
   }
 
   addCurvePropertyToContainer(container) {
@@ -625,7 +643,6 @@ class ParticleSystemEditor {
   updateColorGradientSystem() {
     if (this.currentSystem && this.currentSystem.useColorOverTime) {
       const gradientData = this.colorGradient.getGradientData();
-
       this.currentSystem.config.colorOverTimeCurve = gradientData;
       this.currentSystem.colorOverTime = (t) => {
         const p = interpolateColorCurve(t, gradientData);
@@ -688,11 +705,13 @@ class ParticleSystemEditor {
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         transition: all 0.2s ease;
       }
-      input[type="range"]::-webkit-slider-thumb:hover {
+      input[type="range"]::-webkit-slider-thumb:hover
+      {
         background-color: #2563eb;
         transform: scale(1.1);
       }
-      input[type="range"]::-moz-range-thumb {
+      input[type="range"]::-moz-range-thumb 
+      {
         width: 16px;
         height: 16px;
         background-color: #3b82f6;
@@ -1121,14 +1140,12 @@ class ParticleSystemEditor {
   // Update the editor with current system values
   updateEditorValues() {
     if (!this.currentSystem) return;
-    console.log(this.currentSystem.config.sizeOverTimeCurve)
+    
     const config = this.currentSystem.config;
-    console.log("1111111111",JSON.parse(JSON.stringify( config)))
     // 1. Update UI property fields
     Object.keys(this.propertyInputs).forEach(property => {
       const input = this.propertyInputs[property];
       const value = config[property];
-      
       if (input && value !== undefined) {
         if (typeof input.setValue === 'function') {
           input.setValue(value);
@@ -1137,7 +1154,6 @@ class ParticleSystemEditor {
         }
       }
     });
-    console.log("222222222",JSON.parse(JSON.stringify( config)))
     // 2. Update Size Over Lifetime curve editor
     if (this.sizeCurveEditor && config.sizeOverTimeCurve) {
       console.log('Restoring curve:', config.sizeOverTimeCurve);
@@ -1145,11 +1161,8 @@ class ParticleSystemEditor {
     } else {
       console.warn('Missing curve data!', config.sizeOverTimeCurve);
     }
-console.log("3333333333333",JSON.parse(JSON.stringify( config)))
-
     // 3. Update Color Over Lifetime gradient editor
     if (this.colorGradient && config.colorOverTimeCurve) {
-
       this.colorGradient.setGradientData(config.colorOverTimeCurve);
     }
   }
