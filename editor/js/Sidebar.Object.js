@@ -10,7 +10,7 @@ import { SetRotationCommand } from './commands/SetRotationCommand.js';
 import { SetScaleCommand } from './commands/SetScaleCommand.js';
 import { SetColorCommand } from './commands/SetColorCommand.js';
 import { SetShadowValueCommand } from './commands/SetShadowValueCommand.js';
-
+import { getParticleSystem } from './ParticleSystem.Registery.js';
 import { SidebarObjectAnimation } from './Sidebar.Object.Animation.js';
 import { ParticleSystemEditor } from './ParticleSystem.Editor.js';
 import { ParticleSystem } from './ParticleSystem.js';
@@ -380,15 +380,19 @@ function SidebarObject(editor) {
 
 	const editParticleButton = new UIButton('Edit Particle System').onClick(() => {
 		const selected = editor.selected;
+		const id = selected.config.systemId; // or selected.name / selected.userData.id
 
+		const system = getParticleSystem(id);
+		
 		if (selected instanceof ParticleSystem) {
 			if (!systemeditor) {
 				systemeditor = new ParticleSystemEditor(editor);
 			}
+			console.log('Before:', JSON.parse(JSON.stringify(selected.config)));
 			systemeditor.selectSystem(selected);
 			systemeditor.showModal();
 		} else {
-			alert('Please select a Particle System object first.');
+			alert(`No Particle System found in registry for ID: ${id}`);
 		}
 	});
 

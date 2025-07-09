@@ -337,6 +337,7 @@ class CurveEditor {
   // Get the curve as an array of values
  
   setCurveData(points) {
+    console.log("sett")
   this.points = points.map(p => ({ ...p, type: p.type || 'linear' }));
   this.draw();
   this.onChange(this); // <-- pass full editor so you still have getValue(t)

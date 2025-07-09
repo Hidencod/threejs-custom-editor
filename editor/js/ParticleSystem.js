@@ -489,7 +489,7 @@ class ParticleSystem extends THREE.Object3D {
           colors[i3 + 2] = color.b;
           alphas[i] = alpha;
           //console.log('ColorOverTime →',color.r,color.g, color.b, alpha);
-          console.log('not fading')
+          
         } else {
           // Default color fade based on age
           const fadeRatio = 1.0 - ageRatio;
@@ -500,7 +500,7 @@ class ParticleSystem extends THREE.Object3D {
           colors[i3 + 2] = baseColor.b * fadeRatio;
           alphas[i] = this.config.opacity * fadeRatio;
           
-          console.log('fading')
+          
         }
       }
     }
@@ -898,7 +898,7 @@ class ParticleSystem extends THREE.Object3D {
 
   data.type = 'ParticleSystem';
   data.config = { ...this.config };
-
+    console.log(this.config.sizeOverTimeCurve)
   return base;
 }
 

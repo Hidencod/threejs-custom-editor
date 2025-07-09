@@ -215,184 +215,187 @@ class ParticleSystemEditor {
   }
 
   createCollapsibleSection(title, content, hasToggle = false, initialToggleState = false, onToggleChange = null) {
-    const section = document.createElement('div');
-    section.style.borderBottom = '1px solid #374151';
+  const section = document.createElement('div');
+  section.style.borderBottom = '1px solid #374151';
 
-    const header = document.createElement('div');
-    header.style.display = 'flex';
-    header.style.justifyContent = 'space-between';
-    header.style.alignItems = 'center';
-    header.style.padding = '16px 20px';
-    header.style.backgroundColor = '#2d2d2d';
-    header.style.cursor = 'pointer';
-    header.style.transition = 'background-color 0.2s ease';
-    header.style.fontFamily = 'Inter, "Segoe UI", sans-serif';
+  const header = document.createElement('div');
+  header.style.display = 'flex';
+  header.style.justifyContent = 'space-between';
+  header.style.alignItems = 'center';
+  header.style.padding = '16px 20px';
+  header.style.backgroundColor = '#2d2d2d';
+  header.style.cursor = 'pointer';
+  header.style.transition = 'background-color 0.2s ease';
+  header.style.fontFamily = 'Inter, "Segoe UI", sans-serif';
 
-    const titleEl = document.createElement('h3');
-    titleEl.textContent = title;
-    titleEl.style.margin = '0';
-    titleEl.style.fontSize = '14px';
-    titleEl.style.fontWeight = '600';
-    titleEl.style.color = '#ffffff';
+  const titleEl = document.createElement('h3');
+  titleEl.textContent = title;
+  titleEl.style.margin = '0';
+  titleEl.style.fontSize = '14px';
+  titleEl.style.fontWeight = '600';
+  titleEl.style.color = '#ffffff';
 
-    const leftSide = document.createElement('div');
-    leftSide.style.display = 'flex';
-    leftSide.style.alignItems = 'center';
-    leftSide.style.gap = '10px';
+  const leftSide = document.createElement('div');
+  leftSide.style.display = 'flex';
+  leftSide.style.alignItems = 'center';
+  leftSide.style.gap = '10px';
 
-    const rightSide = document.createElement('div');
-    rightSide.style.display = 'flex';
-    rightSide.style.alignItems = 'center';
-    rightSide.style.gap = '10px';
+  const rightSide = document.createElement('div');
+  rightSide.style.display = 'flex';
+  rightSide.style.alignItems = 'center';
+  rightSide.style.gap = '10px';
 
-    const expandIcon = document.createElement('span');
-    expandIcon.textContent = '▼';
-    expandIcon.style.fontSize = '12px';
-    expandIcon.style.color = '#9ca3af';
-    expandIcon.style.transition = 'transform 0.2s ease';
+  const expandIcon = document.createElement('span');
+  expandIcon.textContent = '▼';
+  expandIcon.style.fontSize = '12px';
+  expandIcon.style.color = '#9ca3af';
+  expandIcon.style.transition = 'transform 0.2s ease';
 
-    let toggleInput = null;
-    let toggleLabel = null;
-    let toggleThumb = null;
+  let toggleInput = null;
+  let toggleLabel = null;
+  let toggleThumb = null;
 
-    if (hasToggle) {
-      const toggleContainer = document.createElement('div');
-      toggleContainer.style.position = 'relative';
-      toggleContainer.style.display = 'inline-block';
-      toggleContainer.style.width = '44px';
-      toggleContainer.style.height = '24px';
+  if (hasToggle) {
+    const toggleContainer = document.createElement('div');
+    toggleContainer.style.position = 'relative';
+    toggleContainer.style.display = 'inline-block';
+    toggleContainer.style.width = '44px';
+    toggleContainer.style.height = '24px';
 
-      toggleInput = document.createElement('input');
-      toggleInput.type = 'checkbox';
-      toggleInput.id = `toggle-${title.replace(/\s+/g, '')}`;
-      toggleInput.checked = initialToggleState;
-      toggleInput.style.opacity = '0';
-      toggleInput.style.width = '0';
-      toggleInput.style.height = '0';
+    toggleInput = document.createElement('input');
+    toggleInput.type = 'checkbox';
+    toggleInput.id = `toggle-${title.replace(/\s+/g, '')}`;
+    toggleInput.checked = initialToggleState;
+    toggleInput.style.opacity = '0';
+    toggleInput.style.width = '0';
+    toggleInput.style.height = '0';
 
-      toggleLabel = document.createElement('label');
-      toggleLabel.setAttribute('for', toggleInput.id);
-      toggleLabel.style.position = 'absolute';
-      toggleLabel.style.cursor = 'pointer';
-      toggleLabel.style.top = '0';
-      toggleLabel.style.left = '0';
-      toggleLabel.style.right = '0';
-      toggleLabel.style.bottom = '0';
-      toggleLabel.style.backgroundColor = initialToggleState ? '#3b82f6' : '#374151';
-      toggleLabel.style.borderRadius = '12px';
-      toggleLabel.style.transition = 'background-color 0.2s ease';
+    toggleLabel = document.createElement('label');
+    toggleLabel.setAttribute('for', toggleInput.id);
+    toggleLabel.style.position = 'absolute';
+    toggleLabel.style.cursor = 'pointer';
+    toggleLabel.style.top = '0';
+    toggleLabel.style.left = '0';
+    toggleLabel.style.right = '0';
+    toggleLabel.style.bottom = '0';
+    toggleLabel.style.backgroundColor = initialToggleState ? '#3b82f6' : '#374151';
+    toggleLabel.style.borderRadius = '12px';
+    toggleLabel.style.transition = 'background-color 0.2s ease';
 
-      toggleThumb = document.createElement('div');
-      toggleThumb.style.position = 'absolute';
-      toggleThumb.style.content = '';
-      toggleThumb.style.height = '18px';
-      toggleThumb.style.width = '18px';
-      toggleThumb.style.left = initialToggleState ? '23px' : '3px';
-      toggleThumb.style.bottom = '3px';
-      toggleThumb.style.backgroundColor = '#ffffff';
-      toggleThumb.style.borderRadius = '50%';
-      toggleThumb.style.transition = 'transform 0.2s ease, left 0.2s ease';
+    toggleThumb = document.createElement('div');
+    toggleThumb.style.position = 'absolute';
+    toggleThumb.style.height = '18px';
+    toggleThumb.style.width = '18px';
+    toggleThumb.style.left = initialToggleState ? '23px' : '3px';
+    toggleThumb.style.bottom = '3px';
+    toggleThumb.style.backgroundColor = '#ffffff';
+    toggleThumb.style.borderRadius = '50%';
+    toggleThumb.style.transition = 'transform 0.2s ease, left 0.2s ease';
 
-      toggleLabel.appendChild(toggleThumb);
-      toggleContainer.appendChild(toggleInput);
-      toggleContainer.appendChild(toggleLabel);
-      leftSide.appendChild(toggleContainer); // Append to leftSide
-      section.__toggle = toggleInput;
-      toggleInput.addEventListener('change', () => {
-        const isChecked = toggleInput.checked;
-        toggleLabel.style.backgroundColor = isChecked ? '#3b82f6' : '#374151';
-        toggleThumb.style.left = isChecked ? '23px' : '3px';
-        contentDiv.style.maxHeight = isChecked ? contentDiv.scrollHeight + 'px' : '0';
-        contentDiv.style.padding = isChecked ? '0 20px 16px' : '0 20px';
-        contentDiv.style.opacity = isChecked ? '1' : '0.2'; // Reduced opacity when disabled
-        contentDiv.style.pointerEvents = isChecked ? 'auto' : 'none'; // Disable interactions
-        expandIcon.style.transform = isChecked ? 'rotate(0deg)' : 'rotate(-90deg)';
-        if (typeof onToggleChange === 'function') {
-          onToggleChange(isChecked);
-        }
-      });
-    }
+    toggleLabel.appendChild(toggleThumb);
+    toggleContainer.appendChild(toggleInput);
+    toggleContainer.appendChild(toggleLabel);
+    leftSide.appendChild(toggleContainer);
 
-    leftSide.appendChild(titleEl); // Append title to leftSide
-    rightSide.appendChild(expandIcon);
-
-    header.appendChild(leftSide);
-    header.appendChild(rightSide);
-
-    const contentDiv = document.createElement('div');
-    contentDiv.style.padding = '0 20px 16px';
-    contentDiv.style.backgroundColor = '#1a1a1a';
-    contentDiv.style.overflow = 'hidden';
-    contentDiv.style.transition = 'max-height 0.3s ease, opacity 0.3s ease';
-    contentDiv.appendChild(content);
-
-    // Add hover effect to header
-    header.addEventListener('mouseenter', () => {
-      header.style.backgroundColor = '#374151';
-    });
-    header.addEventListener('mouseleave', () => {
-      header.style.backgroundColor = '#2d2d2d';
-    });
-
-    // Toggle functionality for header click (independent of toggle switch)
-    const sectionId = title.replace(/\s+/g, '');
-    let isCollapsed = this.collapsedSections[sectionId] || !initialToggleState; // If hasToggle, start collapsed if initialToggleState is false
-
-    const updateCollapsedState = () => {
-      if (isCollapsed) {
-        contentDiv.style.maxHeight = '0';
-        contentDiv.style.padding = '0 20px';
-        expandIcon.style.transform = 'rotate(-90deg)';
-      } else {
-        contentDiv.style.maxHeight = contentDiv.scrollHeight + 'px';
-        contentDiv.style.padding = '0 20px 16px';
-        expandIcon.style.transform = 'rotate(0deg)';
-      }
-      if (hasToggle) {
-        contentDiv.style.opacity = toggleInput.checked ? '1' : '0.5';
-        contentDiv.style.pointerEvents = toggleInput.checked ? 'auto' : 'none';
-      } else {
-        contentDiv.style.opacity = '1';
-        contentDiv.style.pointerEvents = 'auto';
-      }
-    };
-
-    header.addEventListener('click', () => {
-      isCollapsed = !isCollapsed;
-      this.collapsedSections[sectionId] = isCollapsed;
-      updateCollapsedState();
-    });
-
-    // Initial state setup
-    if (hasToggle) {
-      toggleInput.checked = initialToggleState;
-      toggleLabel.style.backgroundColor = initialToggleState ? '#3b82f6' : '#374151';
-      toggleThumb.style.left = initialToggleState ? '23px' : '3px';
-      contentDiv.style.opacity = initialToggleState ? '1' : '0.5';
-      contentDiv.style.pointerEvents = initialToggleState ? 'auto' : 'none';
-      if (!initialToggleState) {
-        contentDiv.style.maxHeight = '0';
-        contentDiv.style.padding = '0 20px';
-        expandIcon.style.transform = 'rotate(-90deg)';
-      }
-    } else {
-      if (!initialToggleState) {
-        contentDiv.style.maxHeight = '0';
-        contentDiv.style.padding = '0 20px';
-        expandIcon.style.transform = 'rotate(-90deg)';
-      } else {
-        contentDiv.style.maxHeight = contentDiv.scrollHeight + 'px'; // Ensure non-toggled sections are open
-        contentDiv.style.opacity = '1';
-        contentDiv.style.pointerEvents = 'auto';
-        expandIcon.style.transform = 'rotate(0deg)';
-      }
-    }
-
-    section.appendChild(header);
-    section.appendChild(contentDiv);
-
-    return section;
+    section.__toggle = toggleInput;
   }
+
+  leftSide.appendChild(titleEl);
+  rightSide.appendChild(expandIcon);
+  header.appendChild(leftSide);
+  header.appendChild(rightSide);
+
+  const contentDiv = document.createElement('div');
+  contentDiv.style.padding = '0 20px 16px';
+  contentDiv.style.backgroundColor = '#1a1a1a';
+  contentDiv.style.overflow = 'hidden';
+  contentDiv.style.transition = 'max-height 0.3s ease, opacity 0.3s ease';
+  contentDiv.appendChild(content);
+
+  if (hasToggle) {
+    toggleInput.addEventListener('change', () => {
+      const isChecked = toggleInput.checked;
+      toggleLabel.style.backgroundColor = isChecked ? '#3b82f6' : '#374151';
+      toggleThumb.style.left = isChecked ? '23px' : '3px';
+      contentDiv.style.maxHeight = isChecked ? contentDiv.scrollHeight + 'px' : '0';
+      contentDiv.style.padding = isChecked ? '0 20px 16px' : '0 20px';
+      contentDiv.style.opacity = isChecked ? '1' : '0.2';
+      contentDiv.style.pointerEvents = isChecked ? 'auto' : 'none';
+      expandIcon.style.transform = isChecked ? 'rotate(0deg)' : 'rotate(-90deg)';
+      if (typeof onToggleChange === 'function') {
+        onToggleChange(isChecked);
+      }
+    });
+  }
+
+  header.addEventListener('mouseenter', () => {
+    header.style.backgroundColor = '#374151';
+  });
+
+  header.addEventListener('mouseleave', () => {
+    header.style.backgroundColor = '#2d2d2d';
+  });
+
+  const sectionId = title.replace(/\s+/g, '');
+  let isCollapsed = this.collapsedSections[sectionId] || !initialToggleState;
+
+  const updateCollapsedState = () => {
+    if (isCollapsed) {
+      contentDiv.style.maxHeight = '0';
+      contentDiv.style.padding = '0 20px';
+      expandIcon.style.transform = 'rotate(-90deg)';
+    } else {
+      contentDiv.style.maxHeight = contentDiv.scrollHeight + 'px';
+      contentDiv.style.padding = '0 20px 16px';
+      expandIcon.style.transform = 'rotate(0deg)';
+    }
+
+    if (hasToggle) {
+      contentDiv.style.opacity = toggleInput.checked ? '1' : '0.5';
+      contentDiv.style.pointerEvents = toggleInput.checked ? 'auto' : 'none';
+    } else {
+      contentDiv.style.opacity = '1';
+      contentDiv.style.pointerEvents = 'auto';
+    }
+  };
+
+  header.addEventListener('click', () => {
+    isCollapsed = !isCollapsed;
+    this.collapsedSections[sectionId] = isCollapsed;
+    updateCollapsedState();
+  });
+
+  if (hasToggle) {
+    toggleInput.checked = initialToggleState;
+    toggleLabel.style.backgroundColor = initialToggleState ? '#3b82f6' : '#374151';
+    toggleThumb.style.left = initialToggleState ? '23px' : '3px';
+    contentDiv.style.opacity = initialToggleState ? '1' : '0.5';
+    contentDiv.style.pointerEvents = initialToggleState ? 'auto' : 'none';
+
+    if (!initialToggleState) {
+      contentDiv.style.maxHeight = '0';
+      contentDiv.style.padding = '0 20px';
+      expandIcon.style.transform = 'rotate(-90deg)';
+    }
+  } else {
+    if (!initialToggleState) {
+      contentDiv.style.maxHeight = '0';
+      contentDiv.style.padding = '0 20px';
+      expandIcon.style.transform = 'rotate(-90deg)';
+    } else {
+      contentDiv.style.maxHeight = contentDiv.scrollHeight + 'px';
+      contentDiv.style.opacity = '1';
+      contentDiv.style.pointerEvents = 'auto';
+      expandIcon.style.transform = 'rotate(0deg)';
+    }
+  }
+
+  section.appendChild(header);
+  section.appendChild(contentDiv);
+
+  return section;
+}
+
 
   setupPropertiesUI() {
     // Clear existing properties
@@ -519,7 +522,8 @@ class ParticleSystemEditor {
       false,
       (enabled) => {
         this.currentSystem.useSizeOverTime = enabled;
-        this.updateSizeCurveSystem();
+        this.currentSystem.config.useSizeOverTime = enabled;
+        //this.updateSizeCurveSystem();
         this.editor.signals.sceneGraphChanged.dispatch();
       }
     );
@@ -532,6 +536,7 @@ class ParticleSystemEditor {
         if (toggle) {
           toggle.checked = value;
           toggle.dispatchEvent(new Event('change')); // simulate user toggle
+          
         }
       }
     };
@@ -580,6 +585,7 @@ class ParticleSystemEditor {
       this.currentSystem.config.sizeOverTimeCurve = curvePoints;
       this.currentSystem.sizeOverTime = (t) => interpolateCurve(t, curvePoints);
       this.editor.signals.sceneGraphChanged.dispatch();
+      //console.log( this.currentSystem.config.sizeOverTimeCurve)
     }
   }
 
@@ -1115,9 +1121,9 @@ class ParticleSystemEditor {
   // Update the editor with current system values
   updateEditorValues() {
     if (!this.currentSystem) return;
-
+    console.log(this.currentSystem.config.sizeOverTimeCurve)
     const config = this.currentSystem.config;
-
+    console.log("1111111111",JSON.parse(JSON.stringify( config)))
     // 1. Update UI property fields
     Object.keys(this.propertyInputs).forEach(property => {
       const input = this.propertyInputs[property];
@@ -1126,21 +1132,20 @@ class ParticleSystemEditor {
       if (input && value !== undefined) {
         if (typeof input.setValue === 'function') {
           input.setValue(value);
-          console.log(property, value)
         } else if (property === 'color' && input.setHexValue) {
           input.setHexValue(value);
         }
       }
     });
-
+    console.log("222222222",JSON.parse(JSON.stringify( config)))
     // 2. Update Size Over Lifetime curve editor
     if (this.sizeCurveEditor && config.sizeOverTimeCurve) {
-      if (this.propertyInputs.useSizeOverTime !== undefined) {
-        this.propertyInputs.useSizeOverTime.setValue(this.currentSystem.config.useSizeOverTime);
-        console.log(this.propertyInputs.useSizeOverTime.getValue())
-      }
+      console.log('Restoring curve:', config.sizeOverTimeCurve);
       this.sizeCurveEditor.setCurveData(config.sizeOverTimeCurve);
+    } else {
+      console.warn('Missing curve data!', config.sizeOverTimeCurve);
     }
+console.log("3333333333333",JSON.parse(JSON.stringify( config)))
 
     // 3. Update Color Over Lifetime gradient editor
     if (this.colorGradient && config.colorOverTimeCurve) {
@@ -1184,7 +1189,7 @@ class ParticleSystemEditor {
     // When a particle system object is selected, make it the current system
     if (object instanceof ParticleSystem) {
       this.currentSystem = object;
-      console.log(this.currentSystem.colorOverTime)
+      
       this.updateEditorValues();
       object.play();
       console.log('Bound to ParticleSystem:', object);

@@ -36,6 +36,7 @@ function clearParticleSystems() {
 }
 
 export {
+  particleSystemMap,
   registerParticleSystem,
   getParticleSystem,
   removeParticleSystem,
