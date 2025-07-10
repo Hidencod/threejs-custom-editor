@@ -20,10 +20,11 @@ class ParticleSystem extends THREE.Object3D {
       updateFrequency: config.updateFrequency || 1,
       useGPUShaders: config.useGPUShaders !== false,
       useSizeOverTime: config.useSizeOverTime ?? false,
-  useColorOverTime: config.useColorOverTime ?? false,
+      useColorOverTime: config.useColorOverTime ?? false,
       // Simulation Space - Unity-like feature
       simulationSpace: config.simulationSpace || 'Local', // 'Local' or 'World'
-
+      rendererType: config.rendererType || 'Billboard', // Billboard, Mesh, Sprite, None
+      meshType: config.meshType || 'Sphere', // optional, for 'Mesh' type
       // Unity-like features
       playOnAwake: config.playOnAwake !== false,
       autoDestroy: config.autoDestroy || false,
@@ -40,12 +41,12 @@ class ParticleSystem extends THREE.Object3D {
       this.sizeOverTime = (t) => interpolateCurve(t, this.config.sizeOverTimeCurve);
     }
     this.colorOverTime = (t) => {
-  const p = interpolateColorCurve(t, this.config.colorOverTimeCurve);
-  return {
-    color: new THREE.Color(p.r / 255, p.g / 255, p.b / 255),
-    alpha: p.a
-  };
-};
+      const p = interpolateColorCurve(t, this.config.colorOverTimeCurve);
+      return {
+        color: new THREE.Color(p.r / 255, p.g / 255, p.b / 255),
+        alpha: p.a
+      };
+    };
     // if (this.config.colorOverTimeCurve) {
     //   this.colorOverTime = (t) => {
     //     const point = interpolateColorCurve(t, this.config.colorOverTimeCurve);
@@ -65,8 +66,8 @@ class ParticleSystem extends THREE.Object3D {
     this.lastEmission = 0;
     this.isParticleSystem = true;
     this.frameCount = 0;
-    this.useColorOverTime = this.config.useColorOverTime||false;
-    this.useSizeOverTime = this.config.useSizeOverTime||false;
+    this.useColorOverTime = this.config.useColorOverTime || false;
+    this.useSizeOverTime = this.config.useSizeOverTime || false;
     // World space tracking
     this.worldPositionMatrix = new THREE.Matrix4();
     this.worldPosition = new THREE.Vector3();
@@ -147,11 +148,17 @@ class ParticleSystem extends THREE.Object3D {
     this.geometry.setAttribute('alpha', this.alphaAttribute);
 
     // Use GPU shaders for better performance
-    this.createGPUMaterial();
-
-    this.points = new THREE.Points(this.geometry, this.material);
+    if (this.config.rendererType === 'Billboard') {
+      this.createGPUMaterial();
+      this.points = new THREE.Points(this.geometry, this.material);
+      this.add(this.points);
+    } else if (this.config.rendererType === 'Mesh') {
+      this.createMeshParticles();
+    } else if (this.config.rendererType === 'Sprite') {
+      this.createSpriteParticles();
+    }
     this.gravity = new THREE.Vector3(0, this.config.gravity, 0);
-    this.add(this.points);
+
 
     // Initialize world space tracking
     this.updateWorldTransform();
@@ -162,6 +169,32 @@ class ParticleSystem extends THREE.Object3D {
     // Prewarm feature
     if (this.config.prewarm) {
       this.prewarmSystem();
+    }
+  }
+  createMeshParticles() {
+    const meshGeometry = this.getPrimitiveGeometry(this.config.meshType);
+    const meshMaterial = new THREE.MeshStandardMaterial({ color: this.config.color });
+
+    this.meshParticles = [];
+    for (let i = 0; i < this.particleCount; i++) {
+      const mesh = new THREE.Mesh(meshGeometry, meshMaterial.clone());
+      mesh.scale.setScalar(this.config.size);
+      mesh.visible = false;
+      this.add(mesh);
+      this.meshParticles.push(mesh);
+    }
+  }
+  createSpriteParticles() {
+    const texture = new THREE.TextureLoader().load('textures/smoke.png'); // customize
+    const spriteMaterial = new THREE.SpriteMaterial({ map: texture, color: this.config.color });
+
+    this.spriteParticles = [];
+    for (let i = 0; i < this.particleCount; i++) {
+      const sprite = new THREE.Sprite(spriteMaterial.clone());
+      sprite.scale.setScalar(this.config.size);
+      sprite.visible = false;
+      this.add(sprite);
+      this.spriteParticles.push(sprite);
     }
   }
 
@@ -482,14 +515,14 @@ class ParticleSystem extends THREE.Object3D {
         }
 
         // Apply color over time if defined
-        if (this.colorOverTime&&this.useColorOverTime) {
+        if (this.colorOverTime && this.useColorOverTime) {
           const { color, alpha } = this.colorOverTime(t);
           colors[i3] = color.r;
           colors[i3 + 1] = color.g;
           colors[i3 + 2] = color.b;
           alphas[i] = alpha;
           //console.log('ColorOverTime →',color.r,color.g, color.b, alpha);
-          
+
         } else {
           // Default color fade based on age
           const fadeRatio = 1.0 - ageRatio;
@@ -499,8 +532,8 @@ class ParticleSystem extends THREE.Object3D {
           colors[i3 + 1] = baseColor.g * fadeRatio;
           colors[i3 + 2] = baseColor.b * fadeRatio;
           alphas[i] = this.config.opacity * fadeRatio;
-          
-          
+
+
         }
       }
     }
@@ -537,6 +570,35 @@ class ParticleSystem extends THREE.Object3D {
           default:
             // Do nothing, keep system alive but not emitting
             break;
+        }
+      }
+    }
+    if (this.config.rendererType === 'Mesh' && this.meshParticles) {
+      for (let i = 0; i < this.meshParticles.length; i++) {
+        const mesh = this.meshParticles[i];
+        if (this.life[i] < this.maxLife) {
+          mesh.visible = true;
+          mesh.position.set(pos[3 * i], pos[3 * i + 1], pos[3 * i + 2]);
+          mesh.scale.setScalar(sizes[i] || this.config.size);
+          mesh.material.color.setRGB(colors[3 * i], colors[3 * i + 1], colors[3 * i + 2]);
+          mesh.material.opacity = alphas[i];
+        } else {
+          mesh.visible = false;
+        }
+      }
+    }
+
+    if (this.config.rendererType === 'Sprite' && this.spriteParticles) {
+      for (let i = 0; i < this.spriteParticles.length; i++) {
+        const sprite = this.spriteParticles[i];
+        if (this.life[i] < this.maxLife) {
+          sprite.visible = true;
+          sprite.position.set(pos[3 * i], pos[3 * i + 1], pos[3 * i + 2]);
+          sprite.scale.setScalar(sizes[i] || this.config.size);
+          sprite.material.color.setRGB(colors[3 * i], colors[3 * i + 1], colors[3 * i + 2]);
+          sprite.material.opacity = alphas[i];
+        } else {
+          sprite.visible = false;
         }
       }
     }
@@ -582,7 +644,10 @@ class ParticleSystem extends THREE.Object3D {
       }
     }
   }
-
+  setStopAction(action) {
+    this.stopAction = action;
+    this.config.stopAction = action;
+  }
   convertParticleSpace(fromSpace, toSpace) {
     const pos = this.positionAttribute.array;
     const vel = this.velocityAttribute.array;
@@ -658,7 +723,7 @@ class ParticleSystem extends THREE.Object3D {
   }
 
   play() {
-    if (this.isPlaying && this.isPaused) return;
+    if (this.isPlaying && !this.isPaused) return;
 
     this.isPlaying = true;
     this.isPaused = false;
@@ -767,19 +832,27 @@ class ParticleSystem extends THREE.Object3D {
   }
 
   destroy() {
-    this.stop();
+    this.stop(); // If applicable
     this.removeFromParent();
 
-    // Clean up resources
-    if (this.geometry) {
-      this.geometry.dispose();
+    if (this.geometry) this.geometry.dispose();
+    if (this.material) this.material.dispose();
+
+    // Detach from TransformControls if it's the selected object
+    if (editor.selected === this) {
+      editor.deselect();
+      if (editor && editor.transformControls) {
+        editor.transformControls.detach();
+      }
+
     }
-    if (this.material) {
-      this.material.dispose();
-    }
+
+    // Remove from registry if used
+    //removeParticleSystem(this.uuid);
 
     console.log('ParticleSystem: Destroyed');
   }
+
 
   // State checking methods
   get isActive() {
@@ -798,78 +871,78 @@ class ParticleSystem extends THREE.Object3D {
   }
 
   updateProperty(property, value) {
-  this.config[property] = value;
+    this.config[property] = value;
 
-  switch (property) {
-    case 'playOnAwake':
-      if (value && !this.hasStarted) this.play();
-      break;
+    switch (property) {
+      case 'playOnAwake':
+        if (value && !this.hasStarted) this.play();
+        break;
 
-    case 'simulationSpace':
-      this.setSimulationSpace(value);
-      break;
+      case 'simulationSpace':
+        this.setSimulationSpace(value);
+        break;
 
-    case 'size':
-      if (this.config.useGPUShaders) {
-        this.material.uniforms.uSize.value = value;
-      } else {
-        this.material.size = value;
-      }
-      break;
+      case 'size':
+        if (this.config.useGPUShaders) {
+          this.material.uniforms.uSize.value = value;
+        } else {
+          this.material.size = value;
+        }
+        break;
 
-    case 'color':
-      if (this.config.useGPUShaders) {
-    // Update default fallback color in shader (if supported)
-    if (this.material.uniforms?.uBaseColor) {
-      this.material.uniforms.uBaseColor.value.setHex(value);
+      case 'color':
+        if (this.config.useGPUShaders) {
+          // Update default fallback color in shader (if supported)
+          if (this.material.uniforms?.uBaseColor) {
+            this.material.uniforms.uBaseColor.value.setHex(value);
+          }
+        } else {
+          this.material.color.setHex(value);
+        }
+        break;
+
+      case 'opacity':
+        if (this.config.useGPUShaders) {
+          this.material.uniforms.uOpacity.value = value;
+        } else {
+          this.material.opacity = value;
+        }
+        break;
+
+      case 'gravity':
+        this.gravity.y = value;
+        break;
+
+      case 'maxLife':
+        this.maxLife = value;
+        break;
+
+      case 'particleCount':
+        this.updateParticleCount(value);
+        break;
+
+      // No runtime logic needed, but persist these
+      case 'emissionRate':
+      case 'burst':
+      case 'burstCount':
+      case 'startSpeed':
+      case 'speedVariation':
+      case 'spread':
+      case 'duration':
+      case 'loop':
+      case 'autoDestroy':
+      case 'prewarm':
+      case 'stopAction':
+      case 'updateFrequency':
+      case 'useGPUShaders':
+        // value already saved to config
+        break;
+
+      default:
+        console.warn(`Unhandled property: ${property}`);
     }
-  } else {
-    this.material.color.setHex(value);
+
   }
-      break;
-
-    case 'opacity':
-      if (this.config.useGPUShaders) {
-        this.material.uniforms.uOpacity.value = value;
-      } else {
-        this.material.opacity = value;
-      }
-      break;
-
-    case 'gravity':
-      this.gravity.y = value;
-      break;
-
-    case 'maxLife':
-      this.maxLife = value;
-      break;
-
-    case 'particleCount':
-      this.updateParticleCount(value);
-      break;
-
-    // No runtime logic needed, but persist these
-    case 'emissionRate':
-    case 'burst':
-    case 'burstCount':
-    case 'startSpeed':
-    case 'speedVariation':
-    case 'spread':
-    case 'duration':
-    case 'loop':
-    case 'autoDestroy':
-    case 'prewarm':
-    case 'stopAction':
-    case 'updateFrequency':
-    case 'useGPUShaders':
-      // value already saved to config
-      break;
-
-    default:
-      console.warn(`Unhandled property: ${property}`);
-  }
-  
-}
 
 
   getObject3D() {
@@ -893,45 +966,44 @@ class ParticleSystem extends THREE.Object3D {
   }
 
   toJSON(meta) {
-  const base = super.toJSON(meta);
-  const data = base.object;
+    const base = super.toJSON(meta);
+    const data = base.object;
 
-  data.type = 'ParticleSystem';
-  data.config = { ...this.config };
-    console.log(this.config.sizeOverTimeCurve)
-  return base;
-}
-
-  static fromJSON(data) {
-  const system = new ParticleSystem(data.config);
-
-  system.uuid = data.uuid;
-  system.name = data.name;
-
-  if (Array.isArray(data.position)) system.position.fromArray(data.position);
-  if (Array.isArray(data.rotation)) system.rotation.fromArray(data.rotation);
-  if (Array.isArray(data.scale))    system.scale.fromArray(data.scale);
-
-  if (data.config.sizeOverTimeCurve) {
-    system.config.sizeOverTimeCurve = data.config.sizeOverTimeCurve;
-    system.sizeOverTime = (t) => interpolateCurve(t, data.config.sizeOverTimeCurve);
+    data.type = 'ParticleSystem';
+    data.config = { ...this.config };
+    return base;
   }
 
-  if (data.config.colorOverTimeCurve) {
-  system.config.colorOverTimeCurve = data.config.colorOverTimeCurve;
-  console.log(data.config.colorOverTimeCurve)
- system.colorOverTime = (t) => {
-  const p = interpolateColorCurve(t, system.config.colorOverTimeCurve);
-  return {
-    color: new THREE.Color(p.r / 255, p.g / 255, p.b / 255),
-    alpha: p.a
-  };
-};
-}
+  static fromJSON(data) {
+    const system = new ParticleSystem(data.config);
+
+    system.uuid = data.uuid;
+    system.name = data.name;
+
+    if (Array.isArray(data.position)) system.position.fromArray(data.position);
+    if (Array.isArray(data.rotation)) system.rotation.fromArray(data.rotation);
+    if (Array.isArray(data.scale)) system.scale.fromArray(data.scale);
+
+    if (data.config.sizeOverTimeCurve) {
+      system.config.sizeOverTimeCurve = data.config.sizeOverTimeCurve;
+      system.sizeOverTime = (t) => interpolateCurve(t, data.config.sizeOverTimeCurve);
+    }
+
+    if (data.config.colorOverTimeCurve) {
+      system.config.colorOverTimeCurve = data.config.colorOverTimeCurve;
+      console.log(data.config.colorOverTimeCurve)
+      system.colorOverTime = (t) => {
+        const p = interpolateColorCurve(t, system.config.colorOverTimeCurve);
+        return {
+          color: new THREE.Color(p.r / 255, p.g / 255, p.b / 255),
+          alpha: p.a
+        };
+      };
+    }
 
 
-  return system;
-}
+    return system;
+  }
 
 }
 function interpolateCurve(t, curve) {

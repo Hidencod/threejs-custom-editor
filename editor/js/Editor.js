@@ -146,7 +146,6 @@ const originalParseObject = THREE.ObjectLoader.prototype.parseObject;
 THREE.ObjectLoader.prototype.parseObject = function (data, parent) {
   if (data.type === 'ParticleSystem') {
     const obj = ParticleSystem.fromJSON(data);
-	console.log(data)
     // ✅ Only add if parent is a real Object3D
     if (parent && typeof parent.add === 'function') {
       parent.add(obj);

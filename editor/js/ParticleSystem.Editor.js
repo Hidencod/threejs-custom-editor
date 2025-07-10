@@ -409,6 +409,7 @@ class ParticleSystemEditor {
     const simulationContent = document.createElement('div');
     const curvesContent = document.createElement('div');
     const gradientContent = document.createElement('div');
+    const stopActionContent = document.createElement('div');
 
     // Particle Properties Section
     this.addNumberPropertyToContainer(particlePropsContent, 'Particle Count', 'particleCount', 1000, 1, 10000, (value) => {
@@ -549,6 +550,7 @@ class ParticleSystemEditor {
       false,
       (enabled) => {
         this.currentSystem.useColorOverTime = enabled;
+        this.currentSystem.config.useColorOverTime = enabled;
         this.editor.signals.sceneGraphChanged.dispatch();
       }
     ); // Add toggle, initially off
@@ -565,6 +567,13 @@ class ParticleSystemEditor {
       }
     };
     this.propertiesPanel.dom.appendChild(colorOverLifeTimeToggle);
+     this.addDropdownPropertyToContainer(stopActionContent, 'Stop Action', 'stopAction', 'Disable', ['Disable', 'Destroy'], (value) => {
+      if (this.currentSystem) {
+        this.currentSystem.setStopAction(value);
+      }
+    });
+     this.propertiesPanel.dom.appendChild(this.createCollapsibleSection('Stop Action', stopActionContent));
+
   }
 
   addCurvePropertyToContainer(container) {
@@ -639,6 +648,8 @@ class ParticleSystemEditor {
     }
 
     container.appendChild(this.colorGradient.container.dom);
+
+   
   }
   updateColorGradientSystem() {
     if (this.currentSystem && this.currentSystem.useColorOverTime) {
