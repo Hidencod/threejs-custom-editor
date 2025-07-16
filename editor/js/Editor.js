@@ -8,6 +8,7 @@ import { Storage as _Storage } from './Storage.js';
 import { Selector } from './Selector.js';
 import { ParticleSystem } from './ParticleSystem.js';
 import { registerParticleSystem } from './ParticleSystem.Registery.js';
+import { CustomObjectLoader } from './CustomLoader.js';
 
 var _DEFAULT_CAMERA = new THREE.PerspectiveCamera( 50, 1, 0.01, 1000 );
 _DEFAULT_CAMERA.name = 'Camera';
@@ -141,22 +142,23 @@ function Editor() {
 	this.addCamera( this.camera );
 	BootAnimation.setProgress(90, 'Finalizing Editor...');
 }
-const originalParseObject = THREE.ObjectLoader.prototype.parseObject;
+//  const originalParseObject = THREE.ObjectLoader.prototype.parseObject;
 
-THREE.ObjectLoader.prototype.parseObject = function (data, parent) {
-  if (data.type === 'ParticleSystem') {
-    const obj = ParticleSystem.fromJSON(data);
-    // ✅ Only add if parent is a real Object3D
-    if (parent && typeof parent.add === 'function') {
-      parent.add(obj);
+// THREE.ObjectLoader.prototype.parseObject = function (data, parent) {
+// 	console.log("Heyyy",data.config)
+//   if (data.type === 'ParticleSystem') {
+//     const obj = ParticleSystem.fromJSON(data);
+//     // ✅ Only add if parent is a real Object3D
+//     if (parent && typeof parent.add === 'function') {
+//       parent.add(obj);
 	  
-    }
+//     }
 
-    return obj;
-  }
+//     return obj;
+//   }
 
-  return originalParseObject.call(this, data, parent);
-};
+//   return originalParseObject.call(this, data, parent);
+// };
 
 Editor.prototype = {
 
@@ -657,9 +659,21 @@ Editor.prototype = {
 	//
 
 	fromJSON: async function ( json ) {
+		function extractCustomObjects(data, parent, handlers) {
+			if (!data || !data.type) return;
 
+			if (handlers[data.type]) {
+				const obj = handlers[data.type](data);
+				if (parent && obj) parent.add(obj);
+			}
+
+			if (Array.isArray(data.children)) {
+				data.children.forEach(child => extractCustomObjects(child, parent, handlers));
+			}
+		}
+		//var loader = new THREE.ObjectLoader();
 		var loader = new THREE.ObjectLoader();
-
+		
 		var camera = await loader.parseAsync( json.camera );
 
 		const existingUuid = this.camera.uuid;
@@ -677,32 +691,37 @@ Editor.prototype = {
 		this.history.fromJSON( json.history );
 		this.scripts = json.scripts;
 		const scene = await loader.parseAsync( json.scene );
-
+		// extractCustomObjects(json.scene.object, scene, {
+		// 	ParticleSystem: ParticleSystem.fromJSON
+		// });
 		scene.traverse(child => {
-		if (child.userData.particleSystem && child.userData.config) {
-			const config = child.userData.config;
+			console.log(child)
+			if (
+				child.userData &&
+				(child.userData.type === 'ParticleSystem' || child.userData.name === 'ParticleSystem')
+			) {
+				const parent = child.parent;
+				const index = parent.children.indexOf(child);
 
-			const particleSystem = new ParticleSystem(config);
+				// ✅ Create real ParticleSystem instance
+				const particleSystem = ParticleSystem.fromJSON(child.userData);
 
-			// Copy transform
-			particleSystem.position.copy(child.position);
-			particleSystem.rotation.copy(child.rotation);
-			particleSystem.scale.copy(child.scale);
-			particleSystem.name = child.name;
+				// ✅ Copy transforms
+				particleSystem.position.copy(child.position);
+				particleSystem.rotation.copy(child.rotation);
+				particleSystem.scale.copy(child.scale);
 
-			// Restore userData
-			particleSystem.userData = child.userData;
+				// ✅ Maintain name, uuid, etc.
+				particleSystem.name = child.name;
+				particleSystem.uuid = child.uuid;
 
-			// Replace in scene
-			if (child.parent) {
-				child.parent.add(particleSystem);
-				child.parent.remove(child);
+				// ✅ Replace in scene
+				parent.children[index] = particleSystem;
+				particleSystem.parent = parent;
+				console.log(particleSystem instanceof ParticleSystem)
+				// Optional: dispose of old child if needed
 			}
-
-			// Optionally re-register
-			registerParticleSystem(particleSystem.userData.systemId, particleSystem);
-		}
-	});
+		});
 		this.setScene( scene );
 
 		if ( json.environment === 'Room' ||
@@ -714,6 +733,7 @@ Editor.prototype = {
 		}
 
 	},
+
 
 	toJSON: function () {
 

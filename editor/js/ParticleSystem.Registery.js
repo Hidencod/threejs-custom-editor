@@ -9,6 +9,7 @@ const particleSystemMap = new Map();
  */
 function registerParticleSystem(id, system) {
   particleSystemMap.set(id, system);
+  console.log(particleSystemMap)
 }
 
 /**

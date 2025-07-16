@@ -50,7 +50,13 @@ function MenubarAdd( editor ) {
 			const object = system.getObject3D();
 			object.name = 'ParticleSystem';
 			const id = Date.now();
-			object.config.systemId = id;
+			object.userData = object.userData || {};
+			object.userData.systemId = id;
+			object.userData.uuid = object.uuid;
+			object.userData = {
+				...system.config
+			}
+			
 			registerParticleSystem(id, object);
 			editor.execute(new AddObjectCommand(editor, object));
 			console.log('Particle system added!');

@@ -5,6 +5,8 @@ class ParticleSystem extends THREE.Object3D {
   constructor(config = {}) {
     super();
     this.config = {
+      type:"ParticleSystem",
+      name:"ParticleSystem",
       particleCount: config.particleCount || 10000,
       maxLife: config.maxLife || 3,
       startSpeed: config.startSpeed || 5,
@@ -33,7 +35,8 @@ class ParticleSystem extends THREE.Object3D {
       stopAction: config.stopAction || 'None',
       onEmissionComplete: config.onEmissionComplete || null,
       onLoop: config.onLoop || null,
-
+      minValue:config.minValue||0,
+      maxValue:config.maxValue||3,
       ...config
     };
     // Convert curves into runtime functions
@@ -397,7 +400,6 @@ class ParticleSystem extends THREE.Object3D {
         this.hasFinishedEmission = true;
         this.isPaused = false;
         this.hasStarted = false;
-
         // Trigger callback if defined
         if (this.config.onEmissionComplete) {
           this.config.onEmissionComplete(this);
@@ -411,7 +413,6 @@ class ParticleSystem extends THREE.Object3D {
       this.hasFinishedEmission = false;
       this.isEmitting = true;
       this.lastEmission = this.time;
-
       // Trigger loop callback if defined
       if (this.config.onLoop) {
         this.config.onLoop(this, ++this.loopCount);
@@ -430,9 +431,9 @@ class ParticleSystem extends THREE.Object3D {
         }
       } else {
         // Continuous emission
+       
         const emissionInterval = 1 / this.config.emissionRate;
         const particlesToEmit = Math.floor((this.time - this.lastEmission) / emissionInterval);
-
         if (particlesToEmit > 0) {
           for (let i = 0; i < particlesToEmit && this.inactiveParticles.size > 0; i++) {
             this.emitParticle();
@@ -492,6 +493,7 @@ class ParticleSystem extends THREE.Object3D {
           pos[i3] = localPos.x;
           pos[i3 + 1] = localPos.y;
           pos[i3 + 2] = localPos.z;
+         
 
         } else {
           // Local space simulation
@@ -602,7 +604,7 @@ class ParticleSystem extends THREE.Object3D {
         }
       }
     }
-
+    
     // Auto-destroy when finished (legacy behavior - now handled by stopAction)
     if (this.config.autoDestroy && !this.config.loop && this.inactiveParticles.size === this.particleCount) {
       this.destroy();
@@ -970,12 +972,24 @@ class ParticleSystem extends THREE.Object3D {
     const data = base.object;
 
     data.type = 'ParticleSystem';
+    data.name = 'ParticleSystem';
     data.config = { ...this.config };
+
+    // ✅ Make sure userData exists before assigning to it
+    data.userData = data.userData || {};
+    data.userData = {
+      ...data.config,  // keep existing systemId or others
+          // apply particle settings
+    };
+    
     return base;
   }
 
+
   static fromJSON(data) {
-    const system = new ParticleSystem(data.config);
+    console.log(data);
+    const config = data || {};
+    const system = new ParticleSystem(config);
 
     system.uuid = data.uuid;
     system.name = data.name;
@@ -984,16 +998,18 @@ class ParticleSystem extends THREE.Object3D {
     if (Array.isArray(data.rotation)) system.rotation.fromArray(data.rotation);
     if (Array.isArray(data.scale)) system.scale.fromArray(data.scale);
 
-    if (data.config.sizeOverTimeCurve) {
-      system.config.sizeOverTimeCurve = data.config.sizeOverTimeCurve;
-      system.sizeOverTime = (t) => interpolateCurve(t, data.config.sizeOverTimeCurve);
+    // ✅ Safe check for sizeOverTimeCurve
+    if (config.sizeOverTimeCurve) {
+      system.config.sizeOverTimeCurve = config.sizeOverTimeCurve;
+      system.sizeOverTime = (t) => interpolateCurve(t, config.sizeOverTimeCurve);
     }
 
-    if (data.config.colorOverTimeCurve) {
-      system.config.colorOverTimeCurve = data.config.colorOverTimeCurve;
-      console.log(data.config.colorOverTimeCurve)
+    // ✅ Safe check for colorOverTimeCurve
+    if (config.colorOverTimeCurve) {
+      system.config.colorOverTimeCurve = config.colorOverTimeCurve;
+
       system.colorOverTime = (t) => {
-        const p = interpolateColorCurve(t, system.config.colorOverTimeCurve);
+        const p = interpolateColorCurve(t, config.colorOverTimeCurve);
         return {
           color: new THREE.Color(p.r / 255, p.g / 255, p.b / 255),
           alpha: p.a
@@ -1001,9 +1017,9 @@ class ParticleSystem extends THREE.Object3D {
       };
     }
 
-
     return system;
   }
+
 
 }
 function interpolateCurve(t, curve) {

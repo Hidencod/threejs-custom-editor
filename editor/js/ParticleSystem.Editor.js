@@ -618,6 +618,8 @@ class ParticleSystemEditor {
     if (this.currentSystem && this.currentSystem.useSizeOverTime) {
       const curvePoints = this.sizeCurveEditor.getCurveData();
       this.currentSystem.config.sizeOverTimeCurve = curvePoints;
+      this.currentSystem.config.minValue= this.sizeCurveEditor.config.minValue;
+      this.currentSystem.config.maxValue = this.sizeCurveEditor.config.maxValue;
       this.currentSystem.sizeOverTime = (t) => interpolateCurve(t, curvePoints);
       this.editor.signals.sceneGraphChanged.dispatch();
       //console.log( this.currentSystem.config.sizeOverTimeCurve)
@@ -1212,8 +1214,8 @@ class ParticleSystemEditor {
     });
     // 2. Update Size Over Lifetime curve editor
     if (this.sizeCurveEditor && config.sizeOverTimeCurve) {
-      console.log('Restoring curve:', config.sizeOverTimeCurve);
-      this.sizeCurveEditor.setCurveData(config.sizeOverTimeCurve);
+      console.log('Restoring curve:', config.sizeOverTimeCurve, config.minValue, config.maxValue);
+      this.sizeCurveEditor.setCurveData(config.sizeOverTimeCurve, config.minValue, config.maxValue);
     } else {
       console.warn('Missing curve data!', config.sizeOverTimeCurve);
     }
@@ -1221,6 +1223,7 @@ class ParticleSystemEditor {
     if (this.colorGradient && config.colorOverTimeCurve) {
       this.colorGradient.setGradientData(config.colorOverTimeCurve);
     }
+    
   }
 
 

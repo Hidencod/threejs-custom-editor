@@ -11,9 +11,11 @@ class CurveEditor {
       curveColor: config.curveColor || '#0f0',
       pointColor: config.pointColor || '#fff',
       label: config.label || 'Curve',
+      minValue:config.minValue||0,
+      maxValue:config.maxValue||3,
       ...config
     };
-
+    this.propertyInputs = {};
     this.container = new UIDiv()
       .setId('curve-editor')
       .setStyle('width', [this.config.width + 'px'])
@@ -79,6 +81,7 @@ class CurveEditor {
 
     // Min/Max inputs
     const minInput = document.createElement('input');
+    minInput.id="minValue";
     minInput.type = 'number';
     minInput.value = this.config.minValue;
     minInput.style.width = '60px';
@@ -97,8 +100,14 @@ class CurveEditor {
       this.draw();
       this.onChange(this);
     });
-
+    this.propertyInputs["minValue"] = {
+      getValue: () => parseFloat(minInput.value),
+      setValue: (value) => {
+        minInput.value = parseFloat(value).toFixed(2);
+      }
+    };
     const maxInput = document.createElement('input');
+    maxInput.id="maxInput";
     maxInput.type = 'number';
     maxInput.value = this.config.maxValue;
     maxInput.style.width = '60px';
@@ -117,7 +126,12 @@ class CurveEditor {
       this.draw();
       this.onChange(this);
     });
-
+    this.propertyInputs["maxValue"] = {
+      getValue: () => parseFloat(maxInput.value),
+      setValue: (value) => {
+        maxInput.value = parseFloat(value).toFixed(2);
+      }
+    };
     // Preset dropdown
     const presetSelect = document.createElement('select');
     presetSelect.style.background = '#333';
@@ -395,8 +409,11 @@ class CurveEditor {
 
   // Get the curve as an array of values
 
-  setCurveData(points) {
-    console.log("sett")
+  setCurveData(points,minValue,maxValue) {
+    this.config.minValue = minValue;
+    this.config.maxValue = maxValue;
+    this.propertyInputs["minValue"].setValue(this.config.minValue);
+    this.propertyInputs["maxValue"].setValue(this.config.maxValue);
     this.points = points.map(p => ({ ...p, type: p.type || 'linear' }));
     this.draw();
     this.onChange(this); // <-- pass full editor so you still have getValue(t)

@@ -380,9 +380,8 @@ function SidebarObject(editor) {
 
 	const editParticleButton = new UIButton('Edit Particle System').onClick(() => {
 		const selected = editor.selected;
-		const id = selected.config.systemId; // or selected.name / selected.userData.id
+		const id = selected.userData.systemId; // or selected.name / selected.userData.id
 
-		const system = getParticleSystem(id);
 		
 		if (selected instanceof ParticleSystem) {
 			if (!systemeditor) {
@@ -391,9 +390,7 @@ function SidebarObject(editor) {
 			console.log('Before:', JSON.parse(JSON.stringify(selected.config)));
 			systemeditor.selectSystem(selected);
 			systemeditor.showModal();
-		} else {
-			alert(`No Particle System found in registry for ID: ${id}`);
-		}
+		} 
 	});
 
 
@@ -740,8 +737,8 @@ function SidebarObject(editor) {
 
 	}
 	function updateParticleSystem(object) {
-		
-		if (object.isParticleSystem) {
+		console.log(object)
+		if (object.config&&object.config.type&&object.config.type =="ParticleSystem") {
 			editParticleSystemRow.setDisplay('')
 
 		} else {

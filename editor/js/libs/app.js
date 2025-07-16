@@ -1,3 +1,5 @@
+import { registerParticleSystem,getParticleSystem } from "../ParticleSystem.Registery.js";
+import { ParticleSystem } from "../ParticleSystem.js";
 var APP = {
 
 	Player: function () {
@@ -108,9 +110,39 @@ var APP = {
 		this.setScene = function ( value ) {
 
 			scene = value;
+			
+			scene.traverse(child => {
+				console.log(child)
+				if (
+					child.userData &&
+					(child.userData.type === 'ParticleSystem' || child.userData.name === 'ParticleSystem')
+				) {
+					const parent = child.parent;
+					const index = parent.children.indexOf(child);
+
+					// ✅ Create real ParticleSystem instance
+					const particleSystem = ParticleSystem.fromJSON(child.userData);
+
+					// ✅ Copy transforms
+					particleSystem.position.copy(child.position);
+					particleSystem.rotation.copy(child.rotation);
+					particleSystem.scale.copy(child.scale);
+
+					// ✅ Maintain name, uuid, etc.
+					particleSystem.name = child.name;
+					particleSystem.uuid = child.uuid;
+
+					// ✅ Replace in scene
+					parent.children[index] = particleSystem;
+					particleSystem.parent = parent;
+					console.log(particleSystem instanceof ParticleSystem)
+					particleSystem.play();
+					// Optional: dispose of old child if needed
+				}
+			});
 
 		};
-
+		
 		this.setPixelRatio = function ( pixelRatio ) {
 
 			renderer.setPixelRatio( pixelRatio );
@@ -159,6 +191,30 @@ var APP = {
 
 			}
 
+			try {
+
+				dispatch(events.update, { time: time - startTime, delta: time - prevTime });
+
+			} catch (e) {
+
+				console.error((e.message || e), (e.stack || ''));
+
+			}
+			try {
+				
+				scene.traverse(child => {
+					if (child instanceof ParticleSystem) {
+						child.update((time - prevTime) / 1000);
+					}
+				});
+
+			} catch (e) {
+				console.error((e.message || e), (e.stack || ''));
+			}
+
+
+
+
 			renderer.render( scene, camera );
 
 			prevTime = time;
@@ -178,6 +234,7 @@ var APP = {
 			dispatch( events.start, arguments );
 
 			renderer.setAnimationLoop( animate );
+			
 
 		};
 
