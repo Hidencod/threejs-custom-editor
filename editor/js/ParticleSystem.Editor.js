@@ -16,7 +16,7 @@ class ParticleSystemEditor {
     this.collapsedSections = {}; // Track collapsed sections
     this.container = new UIPanel();
     this.container.setClass('ParticleSystemEditor');
-
+    
     this.setupUI();
     this.setupContinuousUpdate();
   }
@@ -269,7 +269,11 @@ class ParticleSystemEditor {
     toggleInput.style.opacity = '0';
     toggleInput.style.width = '0';
     toggleInput.style.height = '0';
-
+    toggleInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' || e.key === 'Delete') {
+        e.stopPropagation();
+      }
+    });
     toggleLabel = document.createElement('label');
     toggleLabel.setAttribute('for', toggleInput.id);
     toggleLabel.style.position = 'absolute';
@@ -331,7 +335,11 @@ class ParticleSystemEditor {
   header.addEventListener('mouseenter', () => {
     header.style.backgroundColor = '#374151';
   });
-
+    header.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' || e.key === 'Delete') {
+        e.stopPropagation();
+      }
+    });
   header.addEventListener('mouseleave', () => {
     header.style.backgroundColor = '#2d2d2d';
   });
@@ -701,7 +709,11 @@ class ParticleSystemEditor {
     slider.style.cursor = 'pointer';
     slider.style.webkitAppearance = 'none';
     slider.style.appearance = 'none';
-
+    slider.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' || e.key === 'Delete') {
+        e.stopPropagation();
+      }
+    });
     // Style slider thumb
     const sliderStyle = document.createElement('style');
     sliderStyle.textContent = `
@@ -753,7 +765,11 @@ class ParticleSystemEditor {
     numberInput.style.outline = 'none';
     numberInput.style.transition = 'border-color 0.2s ease';
     numberInput.style.fontFamily = 'Inter, "Segoe UI", sans-serif';
-
+    numberInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' || e.key === 'Delete') {
+        e.stopPropagation();
+      }
+    });
     numberInput.addEventListener('focus', () => {
       numberInput.style.borderColor = '#3b82f6';
     });
@@ -836,7 +852,11 @@ class ParticleSystemEditor {
     colorPreview.style.justifyContent = 'center';
     colorPreview.style.fontSize = '10px';
     colorPreview.style.color = '#9ca3af';
-
+    colorInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' || e.key === 'Delete') {
+        e.stopPropagation();
+      }
+    });
     colorInput.addEventListener('input', () => {
       colorPreview.style.backgroundColor = colorInput.value;
       onChange(parseInt(colorInput.value.replace('#', ''), 16));
@@ -919,6 +939,11 @@ class ParticleSystemEditor {
     toggleLabel.appendChild(toggleThumb);
     toggleContainer.appendChild(toggleInput);
     toggleContainer.appendChild(toggleLabel);
+    toggleInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' || e.key === 'Delete') {
+        e.stopPropagation();
+      }
+    });
 
     toggleInput.addEventListener('change', () => {
       const isChecked = toggleInput.checked;
@@ -993,7 +1018,11 @@ class ParticleSystemEditor {
       }
       select.appendChild(optionEl);
     });
-
+    select.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' || e.key === 'Delete') {
+        e.stopPropagation();
+      }
+    });
     select.addEventListener('change', () => {
       onChange(select.value);
       editor.signals.sceneGraphChanged.dispatch();
@@ -1029,7 +1058,11 @@ class ParticleSystemEditor {
     input.dom.addEventListener('mousedown', (e) => {
       e.stopPropagation();
     });
-
+    input.dom.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' || e.key === 'Delete') {
+        e.stopPropagation();
+      }
+    });
     input.dom.addEventListener('drag', (e) => {
       e.stopPropagation();
     });
@@ -1061,7 +1094,11 @@ class ParticleSystemEditor {
     input.dom.addEventListener('mousedown', (e) => {
       e.stopPropagation();
     });
-
+    input.dom.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' || e.key === 'Delete') {
+        e.stopPropagation();
+      }
+    });
     input.onChange(() => {
       onChange(input.getHexValue());
       editor.signals.sceneGraphChanged.dispatch();
@@ -1090,7 +1127,11 @@ class ParticleSystemEditor {
     input.dom.addEventListener('mousedown', (e) => {
       e.stopPropagation();
     });
-
+    input.dom.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' || e.key === 'Delete') {
+        e.stopPropagation();
+      }
+    });
     input.onChange(() => {
       onChange(input.getValue());
       editor.signals.sceneGraphChanged.dispatch();
@@ -1134,7 +1175,11 @@ class ParticleSystemEditor {
       onChange(select.value);
       editor.signals.sceneGraphChanged.dispatch();
     });
-
+    select.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' || e.key === 'Delete') {
+        e.stopPropagation();
+      }
+    });
     // Prevent dragging on input elements
     select.addEventListener('mousedown', (e) => {
       e.stopPropagation();

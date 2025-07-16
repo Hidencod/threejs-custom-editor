@@ -13,7 +13,7 @@ class CurveEditor {
       label: config.label || 'Curve',
       ...config
     };
-    
+
     this.container = new UIDiv()
       .setId('curve-editor')
       .setStyle('width', [this.config.width + 'px'])
@@ -22,13 +22,13 @@ class CurveEditor {
       .setStyle('border', ['1px solid #444'])
       .setStyle('position', ['relative'])
       .setStyle('padding', ['8px']);
-    
+
     // Header
     const header = new UIRow();
     const title = new UIText(this.config.label).setStyle('color', '#fff').setStyle('font-weight', 'bold');
     header.add(title);
     this.container.add(header);
-    
+
     // Canvas setup
     this.canvas = document.createElement('canvas');
     this.canvas.width = this.config.width;
@@ -36,17 +36,24 @@ class CurveEditor {
     this.canvas.style.border = '1px solid #444';
     this.canvas.style.backgroundColor = '#111';
     this.container.dom.appendChild(this.canvas);
-    
+
     this.ctx = this.canvas.getContext('2d');
-    
+
     // Control points: normalized [0..1] for time, value can be outside [0,1]
     this.points = [
       { t: 0, value: 0.5, type: 'linear' },
       { t: 1, value: 0.5, type: 'linear' },
     ];
-    
+
     this.activePoint = null;
     this.isDragging = false;
+    
+
+
+
+
+
+
     this.presets = {
       'Linear': [{ t: 0, value: 0 }, { t: 1, value: 1 }],
       'Ease In': [{ t: 0, value: 0 }, { t: 0.3, value: 0.1 }, { t: 1, value: 1 }],
@@ -55,20 +62,62 @@ class CurveEditor {
       'Spike': [{ t: 0, value: 0 }, { t: 0.1, value: 1 }, { t: 0.2, value: 0 }, { t: 1, value: 0 }],
       'Bounce': [{ t: 0, value: 0 }, { t: 0.3, value: 1 }, { t: 0.6, value: 0.3 }, { t: 1, value: 1 }]
     };
-    
+
     this.setupControls();
     this.setupEvents();
     this.draw();
-    
+
     // Callback for when curve changes
-    this.onChange = config.onChange || (() => {});
+    this.onChange = config.onChange || (() => { });
   }
   
   setupControls() {
     const controlsRow = new UIRow();
     controlsRow.setStyle('margin-top', '8px');
     controlsRow.setStyle('gap', '4px');
-    
+
+
+    // Min/Max inputs
+    const minInput = document.createElement('input');
+    minInput.type = 'number';
+    minInput.value = this.config.minValue;
+    minInput.style.width = '60px';
+    minInput.style.background = '#333';
+    minInput.style.color = '#fff';
+    minInput.style.border = '1px solid #555';
+    minInput.style.padding = '4px';
+    minInput.style.fontSize = '12px';
+    minInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' || e.key === 'Delete') {
+        e.stopPropagation();
+      }
+    });
+    minInput.addEventListener('change', () => {
+      this.config.minValue = parseFloat(minInput.value);
+      this.draw();
+      this.onChange(this);
+    });
+
+    const maxInput = document.createElement('input');
+    maxInput.type = 'number';
+    maxInput.value = this.config.maxValue;
+    maxInput.style.width = '60px';
+    maxInput.style.background = '#333';
+    maxInput.style.color = '#fff';
+    maxInput.style.border = '1px solid #555';
+    maxInput.style.padding = '4px';
+    maxInput.style.fontSize = '12px';
+    maxInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' || e.key === 'Delete') {
+        e.stopPropagation();
+      }
+    });
+    maxInput.addEventListener('change', () => {
+      this.config.maxValue = parseFloat(maxInput.value);
+      this.draw();
+      this.onChange(this);
+    });
+
     // Preset dropdown
     const presetSelect = document.createElement('select');
     presetSelect.style.background = '#333';
@@ -76,26 +125,30 @@ class CurveEditor {
     presetSelect.style.border = '1px solid #555';
     presetSelect.style.padding = '4px';
     presetSelect.style.fontSize = '12px';
-    
+
     const defaultOption = document.createElement('option');
     defaultOption.value = '';
     defaultOption.textContent = 'Presets...';
     presetSelect.appendChild(defaultOption);
-    
+
     Object.keys(this.presets).forEach(name => {
       const option = document.createElement('option');
       option.value = name;
       option.textContent = name;
       presetSelect.appendChild(option);
     });
-    
+    presetSelect.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' || e.key === 'Delete') {
+        e.stopPropagation();
+      }
+    });
     presetSelect.addEventListener('change', (e) => {
       if (e.target.value) {
         this.loadPreset(e.target.value);
         e.target.value = '';
       }
     });
-    
+
     // Clear button
     const clearBtn = new UIButton('Clear')
       .setStyle('font-size', '12px')
@@ -108,7 +161,7 @@ class CurveEditor {
         this.draw();
         this.onChange(this);
       });
-    
+
     // Smooth button
     const smoothBtn = new UIButton('Smooth')
       .setStyle('font-size', '12px')
@@ -118,29 +171,35 @@ class CurveEditor {
         this.draw();
         this.onChange(this);
       });
-    
+    controlsRow.dom.appendChild(minInput);
+    controlsRow.dom.appendChild(maxInput);
     controlsRow.dom.appendChild(presetSelect);
     controlsRow.add(clearBtn);
     controlsRow.add(smoothBtn);
     this.container.add(controlsRow);
   }
-  
+
   setupEvents() {
+    this.canvas.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' || e.key === 'Delete') {
+        e.stopPropagation();
+      }
+    });
     this.canvas.addEventListener('mousedown', (e) => {
       const rect = this.canvas.getBoundingClientRect();
       const tx = (e.clientX - rect.left) / rect.width;
       const ty = 1 - (e.clientY - rect.top) / rect.height;
-      
+
       // Convert to actual value range
       const actualValue = this.config.minValue + ty * (this.config.maxValue - this.config.minValue);
-      
+
       // Find nearby point
       this.activePoint = this.points.find(p => {
         const px = p.t;
         const py = (p.value - this.config.minValue) / (this.config.maxValue - this.config.minValue);
         return Math.hypot(px - tx, py - ty) < 0.05;
       });
-      
+
       if (!this.activePoint && e.ctrlKey) {
         // Add new point on Ctrl+Click
         const newPoint = { t: tx, value: actualValue, type: 'linear' };
@@ -148,82 +207,82 @@ class CurveEditor {
         this.activePoint = newPoint;
         this.points.sort((a, b) => a.t - b.t);
       }
-      
+
       if (this.activePoint) {
         this.isDragging = true;
         this.canvas.style.cursor = 'grabbing';
       }
-      
+
       this.draw();
     });
-    
+
     this.canvas.addEventListener('mousemove', (e) => {
       if (!this.isDragging || !this.activePoint) return;
-      
+
       const rect = this.canvas.getBoundingClientRect();
       const tx = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
       const ty = 1 - (e.clientY - rect.top) / rect.height;
-      
+
       // Convert to actual value range
       const actualValue = this.config.minValue + ty * (this.config.maxValue - this.config.minValue);
-      
+
       // Don't let first and last points move in time
-      if (this.points.indexOf(this.activePoint) !== 0 && 
-          this.points.indexOf(this.activePoint) !== this.points.length - 1) {
+      if (this.points.indexOf(this.activePoint) !== 0 &&
+        this.points.indexOf(this.activePoint) !== this.points.length - 1) {
         this.activePoint.t = tx;
       }
-      
+
       this.activePoint.value = actualValue;
       this.draw();
       this.onChange(this);
     });
-    
+
     this.canvas.addEventListener('mouseup', () => {
       this.isDragging = false;
       this.activePoint = null;
       this.canvas.style.cursor = 'default';
     });
-    
+
     // Double-click to delete point
     this.canvas.addEventListener('dblclick', (e) => {
       if (this.points.length <= 2) return;
-      
+
       const rect = this.canvas.getBoundingClientRect();
       const tx = (e.clientX - rect.left) / rect.width;
       const ty = 1 - (e.clientY - rect.top) / rect.height;
-      
+
       const pointToDelete = this.points.find(p => {
         const px = p.t;
         const py = (p.value - this.config.minValue) / (this.config.maxValue - this.config.minValue);
         return Math.hypot(px - tx, py - ty) < 0.05;
       });
-      
-      if (pointToDelete && this.points.indexOf(pointToDelete) !== 0 && 
-          this.points.indexOf(pointToDelete) !== this.points.length - 1) {
+
+      if (pointToDelete && this.points.indexOf(pointToDelete) !== 0 &&
+        this.points.indexOf(pointToDelete) !== this.points.length - 1) {
         this.points = this.points.filter(p => p !== pointToDelete);
         this.draw();
         this.onChange(this);
       }
     });
-    
+
     // Hover effect
     this.canvas.addEventListener('mousemove', (e) => {
       if (this.isDragging) return;
-      
+
       const rect = this.canvas.getBoundingClientRect();
       const tx = (e.clientX - rect.left) / rect.width;
       const ty = 1 - (e.clientY - rect.top) / rect.height;
-      
+
       const hoverPoint = this.points.find(p => {
         const px = p.t;
         const py = (p.value - this.config.minValue) / (this.config.maxValue - this.config.minValue);
         return Math.hypot(px - tx, py - ty) < 0.05;
       });
-      
+
       this.canvas.style.cursor = hoverPoint ? 'grab' : 'default';
     });
   }
-  
+
   loadPreset(presetName) {
     if (this.presets[presetName]) {
       this.points = this.presets[presetName].map(p => ({ ...p, type: 'linear' }));
@@ -231,15 +290,15 @@ class CurveEditor {
       this.onChange(this);
     }
   }
-  
+
   draw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    
+
     // Draw grid
     this.ctx.strokeStyle = this.config.gridColor;
     this.ctx.lineWidth = 1;
     this.ctx.globalAlpha = 0.3;
-    
+
     // Vertical lines
     for (let i = 0; i <= 10; i++) {
       const x = (i / 10) * this.canvas.width;
@@ -248,7 +307,7 @@ class CurveEditor {
       this.ctx.lineTo(x, this.canvas.height);
       this.ctx.stroke();
     }
-    
+
     // Horizontal lines
     for (let i = 0; i <= 10; i++) {
       const y = (i / 10) * this.canvas.height;
@@ -257,36 +316,36 @@ class CurveEditor {
       this.ctx.lineTo(this.canvas.width, y);
       this.ctx.stroke();
     }
-    
+
     this.ctx.globalAlpha = 1;
-    
+
     // Draw curve
     this.ctx.beginPath();
     this.points.sort((a, b) => a.t - b.t);
-    
+
     for (let x = 0; x <= this.canvas.width; x++) {
       const t = x / this.canvas.width;
       const value = this.getValue(t);
       const normalizedValue = (value - this.config.minValue) / (this.config.maxValue - this.config.minValue);
       const y = this.canvas.height * (1 - normalizedValue);
-      
+
       if (x === 0) {
         this.ctx.moveTo(x, y);
       } else {
         this.ctx.lineTo(x, y);
       }
     }
-    
+
     this.ctx.strokeStyle = this.config.curveColor;
     this.ctx.lineWidth = 2;
     this.ctx.stroke();
-    
+
     // Draw points
     this.points.forEach((p, index) => {
       const x = p.t * this.canvas.width;
       const normalizedValue = (p.value - this.config.minValue) / (this.config.maxValue - this.config.minValue);
       const y = (1 - normalizedValue) * this.canvas.height;
-      
+
       this.ctx.beginPath();
       this.ctx.arc(x, y, 6, 0, Math.PI * 2);
       this.ctx.fillStyle = this.config.pointColor;
@@ -294,14 +353,14 @@ class CurveEditor {
       this.ctx.strokeStyle = '#000';
       this.ctx.lineWidth = 2;
       this.ctx.stroke();
-      
+
       // Draw point index
       this.ctx.fillStyle = '#000';
       this.ctx.font = '10px Arial';
       this.ctx.textAlign = 'center';
       this.ctx.fillText(index.toString(), x, y + 3);
     });
-    
+
     // Draw value labels
     this.ctx.fillStyle = '#ccc';
     this.ctx.font = '10px Arial';
@@ -309,43 +368,43 @@ class CurveEditor {
     this.ctx.fillText(this.config.maxValue.toFixed(2), 5, 15);
     this.ctx.fillText(this.config.minValue.toFixed(2), 5, this.canvas.height - 5);
   }
-  
+
   getValue(t) {
-  this.points.sort((a, b) => a.t - b.t);
-  t = Math.max(0, Math.min(1, t));
+    this.points.sort((a, b) => a.t - b.t);
+    t = Math.max(0, Math.min(1, t));
 
-  for (let i = 0; i < this.points.length - 1; i++) {
-    const p0 = this.points[i];
-    const p1 = this.points[i + 1];
+    for (let i = 0; i < this.points.length - 1; i++) {
+      const p0 = this.points[i];
+      const p1 = this.points[i + 1];
 
-    if (t >= p0.t && t <= p1.t) {
-      const u = (t - p0.t) / (p1.t - p0.t);
-      if (p0.type === 'smooth' || p1.type === 'smooth') {
-        // basic ease-in/ease-out
-        const uSmooth = u * u * (3 - 2 * u); // smoothstep
-        return p0.value + (p1.value - p0.value) * uSmooth;
-      } else {
-        return p0.value + (p1.value - p0.value) * u; // linear
+      if (t >= p0.t && t <= p1.t) {
+        const u = (t - p0.t) / (p1.t - p0.t);
+        if (p0.type === 'smooth' || p1.type === 'smooth') {
+          // basic ease-in/ease-out
+          const uSmooth = u * u * (3 - 2 * u); // smoothstep
+          return p0.value + (p1.value - p0.value) * uSmooth;
+        } else {
+          return p0.value + (p1.value - p0.value) * u; // linear
+        }
       }
     }
+
+    return this.points[this.points.length - 1].value;
   }
 
-  return this.points[this.points.length - 1].value;
-}
 
-  
   // Get the curve as an array of values
- 
+
   setCurveData(points) {
     console.log("sett")
-  this.points = points.map(p => ({ ...p, type: p.type || 'linear' }));
-  this.draw();
-  this.onChange(this); // <-- pass full editor so you still have getValue(t)
-}
+    this.points = points.map(p => ({ ...p, type: p.type || 'linear' }));
+    this.draw();
+    this.onChange(this); // <-- pass full editor so you still have getValue(t)
+  }
 
-getCurveData() {
-  return this.points.map(p => ({ t: p.t, value: p.value, type: p.type }));
-}
+  getCurveData() {
+    return this.points.map(p => ({ t: p.t, value: p.value, type: p.type }));
+  }
 }
 
 // Gradient Editor with color stops
