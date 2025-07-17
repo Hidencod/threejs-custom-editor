@@ -282,7 +282,7 @@ function AssetBrowser(editor) {
         { name: 'script_helper.js', type: 'scripts', size: '1.2 KB', path: 'assets/script_helper.js', folder: 'Assets/Scripts' },
         { name: 'readme.txt', type: 'scripts', size: '0.2 KB', path: 'assets/readme.txt', folder: 'Assets' }
     ];
-
+    
     // Update renderFolderTree to use folder.path for navigation
     function renderFolderTree() {
         folderTree.clear();
@@ -482,6 +482,7 @@ function AssetBrowser(editor) {
                 e.preventDefault();
             }
         });
+        
     }
 
     // Update filterAssets to use full path
@@ -619,7 +620,7 @@ function AssetBrowser(editor) {
     // Render folder tree and right panel on initial load
     renderFolderTree();
     renderAssets();
-
+    
     // Event handlers
     function updateFilterTabs() {
         filterTabs.dom.childNodes.forEach((tab, index) => {
@@ -913,18 +914,15 @@ function AssetBrowser(editor) {
 
     expandButton.onClick(() => {
         isExpanded = !isExpanded;
-        const topPercent = isExpanded ? 0.7 : 0.9; // 70% top when expanded, 90% when collapsed
-        const top = window.innerHeight * topPercent;
-        container.setStyle('top', [`${top}px`]);
+        
+        
         expandButton.setTextContent(isExpanded ? '▼' : '▲');
         expandButton.setStyle('transform', [isExpanded ? 'rotate(180deg)' : 'rotate(0deg)']);
         // Optional: update viewport bottom if needed
-        const height = window.innerHeight - top;
-        const viewport = document.getElementById('viewport');
-        const resizer2 = document.getElementById('resizer2');
-        if (viewport) viewport.style.bottom = `${height}px`;
-        if (resizer2) resizer2.style.bottom = `${height}px`;
-        signals.windowResize.dispatch();
+        const topPercent = isExpanded ? 0.7 : 0.9; // 70% top when expanded, 90% when collapsed
+        const top = window.innerHeight * topPercent;
+        container.setStyle('top', [`${top}px`]);
+        SetPanelSizes();
     });
 
     // Search functionality
@@ -991,7 +989,20 @@ function AssetBrowser(editor) {
         }
         filterAssets();
     }
-
+    function SetPanelSizes()
+    {
+        var top = container.top || 0;
+        const height = window.innerHeight - top;
+        const viewport = document.getElementById('viewport');
+        const resizer2 = document.getElementById('resizer2');
+        const script = document.getElementById('script');
+        const player = document.getElementById('player');
+        if (viewport) viewport.style.bottom = `${height}px`;
+        if (resizer2) resizer2.style.bottom = `${height}px`;
+        if (script) script.style.bottom = `${height}px`;
+        if (player) player.style.bottom = `${height}px`;
+        signals.windowResize.dispatch();
+    }
     function getDefaultFolder(assetType) {
         const folderMap = {
             'models': 'Models',

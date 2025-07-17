@@ -112,7 +112,7 @@
 			document.body.appendChild( resizer2.dom );
 			//const assetBrowser = new AssetBrowser(editor);
 			//document.body.appendChild( assetBrowser.dom );
-
+			
 			//
 			
 
@@ -141,6 +141,8 @@
 
 					// Hide boot animation when ready
 					if (window.BootAnimation) window.BootAnimation.hide();
+					//assetBrowser.SetPanelSizes();
+					//console.log(assetBrowser)
 
 				} );
 
@@ -268,6 +270,16 @@
 				}
 
 			}
+			var top = document.getElementById('asset-browser').top;
+				const height = window.innerHeight - top;
+				 viewportcss = document.getElementById('viewport');
+				 resizer2css = document.getElementById('resizer2');
+				 scriptcss = document.getElementById('script');
+				 playercss = document.getElementById('player');
+				if (viewportcss) viewport.style.bottom = `${height}px`;
+				if (resizer2css) resizer2.style.bottom = `${height}px`;
+				if (scriptcss) script.style.bottom = `${height}px`;
+				if (playercss) player.style.bottom = `${height}px`;
 
 		</script>
 	</body>
