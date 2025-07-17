@@ -73,6 +73,7 @@ function Resizer2( editor ) {
 		dom.style.bottom = `${clampedHeight}px`;
 		
 		document.getElementById( 'viewport' ).style.bottom = clampedHeight + 'px';
+		document.getElementById('script').style.bottom = clampedHeight + 'px';
 		document.getElementById('asset-browser').style.top = newTop + 'px';
 
 		signals.windowResize.dispatch();
