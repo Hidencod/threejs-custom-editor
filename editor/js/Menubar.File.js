@@ -171,7 +171,7 @@ function MenubarFile( editor ) {
 
 			const json = editor.toJSON();
 			const blob = new Blob( [ JSON.stringify( json ) ], { type: 'application/json' } );
-			editor.utils.save( blob, 'project.json' );
+			editor.utils.save( blob, 'scene.json' );
 
 		} );
 

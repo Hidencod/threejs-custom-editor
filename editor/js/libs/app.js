@@ -1,5 +1,6 @@
 import { registerParticleSystem,getParticleSystem } from "../ParticleSystem.Registery.js";
 import { ParticleSystem } from "../ParticleSystem.js";
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 var APP = {
 
 	Player: function () {
@@ -29,9 +30,49 @@ var APP = {
 			if ( project.shadowType !== undefined ) renderer.shadowMap.type = project.shadowType;
 			if ( project.toneMapping !== undefined ) renderer.toneMapping = project.toneMapping;
 			if ( project.toneMappingExposure !== undefined ) renderer.toneMappingExposure = project.toneMappingExposure;
-
+			
 			this.setScene( loader.parse( json.scene ) );
 			this.setCamera( loader.parse( json.camera ) );
+			if (json.environment && typeof json.environment === 'string') {
+				const envName = json.environment.toLowerCase();
+				const pmremGenerator = new THREE.PMREMGenerator(renderer);
+				switch (envName) {
+
+
+					case 'background':
+
+						useBackgroundAsEnvironment = true;
+
+						if (scene.background !== null && scene.background.isTexture) {
+
+							scene.environment = scene.background;
+							scene.environment.mapping = THREE.EquirectangularReflectionMapping;
+							scene.environmentRotation.y = scene.backgroundRotation.y;
+
+						}
+
+						break;
+
+					case 'equirectangular':
+
+						if (environmentEquirectangularTexture) {
+
+							scene.environment = environmentEquirectangularTexture;
+							scene.environment.mapping = THREE.EquirectangularReflectionMapping;
+
+						}
+
+						break;
+
+					case 'room':
+
+						scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
+
+						break;
+
+				}
+			}
+			
 
 			events = {
 				init: [],

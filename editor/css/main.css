@@ -416,7 +416,7 @@ select:hover {
 	top: 32px;
 	left: 0;
 	right: 350px;
-	bottom: 0;
+	bottom: 30vh;
 	opacity: 0.9;
 }
 
@@ -425,7 +425,7 @@ select:hover {
 	top: 32px;
 	left: 0;
 	right: 350px;
-	bottom: 0;
+	bottom: 30vh;
 }
 
 #menubar {

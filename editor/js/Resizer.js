@@ -49,6 +49,7 @@ function Resizer2( editor ) {
 	const bottom = window.innerHeight * 0.7;
 	dom.style.bottom = bottom
 
+	
 	function onPointerDown( event ) {
 		if ( event.isPrimary === false ) return;
 		dom.ownerDocument.addEventListener( 'pointermove', onPointerMove );
@@ -74,6 +75,7 @@ function Resizer2( editor ) {
 		
 		document.getElementById( 'viewport' ).style.bottom = clampedHeight + 'px';
 		document.getElementById('script').style.bottom = clampedHeight + 'px';
+		document.getElementById('player').style.bottom = clampedHeight + 'px';
 		document.getElementById('asset-browser').style.top = newTop + 'px';
 
 		signals.windowResize.dispatch();

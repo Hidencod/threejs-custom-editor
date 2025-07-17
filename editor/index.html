@@ -65,7 +65,7 @@
 		<script type="module">
 
 			import * as THREE from 'three';
-
+			import { AssetBrowser } from './js/AssetBrowser.js';
 			import { Editor } from './js/Editor.js';
 			import { Viewport } from './js/Viewport.js';
 			import { Toolbar } from './js/Toolbar.js';
@@ -74,7 +74,7 @@
 			import { Sidebar } from './js/Sidebar.js';
 			import { Menubar } from './js/Menubar.js';
 			import { Resizer,Resizer2 } from './js/Resizer.js';
-			import { AssetBrowser } from './js/AssetBrowser.js';
+			
 			// import AssetBrowser from './js/AssetBrowser.js';
 			
 
@@ -270,16 +270,7 @@
 				}
 
 			}
-			var top = document.getElementById('asset-browser').top;
-				const height = window.innerHeight - top;
-				 viewportcss = document.getElementById('viewport');
-				 resizer2css = document.getElementById('resizer2');
-				 scriptcss = document.getElementById('script');
-				 playercss = document.getElementById('player');
-				if (viewportcss) viewport.style.bottom = `${height}px`;
-				if (resizer2css) resizer2.style.bottom = `${height}px`;
-				if (scriptcss) script.style.bottom = `${height}px`;
-				if (playercss) player.style.bottom = `${height}px`;
+			
 
 		</script>
 	</body>

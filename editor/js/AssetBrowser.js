@@ -922,7 +922,17 @@ function AssetBrowser(editor) {
         const topPercent = isExpanded ? 0.7 : 0.9; // 70% top when expanded, 90% when collapsed
         const top = window.innerHeight * topPercent;
         container.setStyle('top', [`${top}px`]);
-        SetPanelSizes();
+        const height = window.innerHeight - top;
+        const viewport = document.getElementById('viewport');
+        const resizer2 = document.getElementById('resizer2');
+        const script = document.getElementById('script');
+        const player = document.getElementById('player');
+        if (viewport) viewport.style.bottom = `${height}px`;
+        if (resizer2) resizer2.style.bottom = `${height}px`;
+        if (script) script.style.bottom = `${height}px`;
+        if (player) player.style.bottom = `${height}px`;
+        signals.windowResize.dispatch();
+       
     });
 
     // Search functionality
@@ -989,20 +999,7 @@ function AssetBrowser(editor) {
         }
         filterAssets();
     }
-    function SetPanelSizes()
-    {
-        var top = container.top || 0;
-        const height = window.innerHeight - top;
-        const viewport = document.getElementById('viewport');
-        const resizer2 = document.getElementById('resizer2');
-        const script = document.getElementById('script');
-        const player = document.getElementById('player');
-        if (viewport) viewport.style.bottom = `${height}px`;
-        if (resizer2) resizer2.style.bottom = `${height}px`;
-        if (script) script.style.bottom = `${height}px`;
-        if (player) player.style.bottom = `${height}px`;
-        signals.windowResize.dispatch();
-    }
+    
     function getDefaultFolder(assetType) {
         const folderMap = {
             'models': 'Models',
