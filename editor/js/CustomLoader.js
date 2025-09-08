@@ -4,7 +4,7 @@ import { ParticleSystem } from './ParticleSystem.js';
 class CustomObjectLoader extends THREE.ObjectLoader {
     parseObject(data, parent) {
         if (data.type === 'ParticleSystem') {
-            console.log('Parsing ParticleSystem:', data);
+           // console.log('Parsing ParticleSystem:', data);
 
             // Create the ParticleSystem object
             const particleSystem = ParticleSystem.fromJSON(data);

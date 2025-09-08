@@ -49,7 +49,7 @@ class MultiCmdsCommand extends Command {
 	}
 
 	toJSON() {
-
+		
 		const output = super.toJSON( this );
 
 		const cmds = [];

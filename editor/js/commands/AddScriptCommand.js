@@ -51,7 +51,6 @@ class AddScriptCommand extends Command {
 	}
 
 	toJSON() {
-
 		const output = super.toJSON( this );
 
 		output.objectUuid = this.object.uuid;

@@ -478,7 +478,7 @@ class ParticleSystemEditor {
     // Emission Settings Section
     this.addNumberPropertyToContainer(emissionContent, 'Emission Rate', 'emissionRate', 1, 0.1, 10000, (value) => {
       if (this.currentSystem) {
-        console.log(value)
+        //console.log(value)
         this.currentSystem.updateProperty('emissionRate', value);
       }
     });
@@ -503,7 +503,7 @@ class ParticleSystemEditor {
 
     this.addBooleanPropertyToContainer(emissionContent, 'Loop', 'loop', true, (value) => {
       if (this.currentSystem) {
-        console.log(value)
+        //console.log(value)
         this.currentSystem.updateProperty('loop', value);
       }
     });
@@ -949,7 +949,7 @@ class ParticleSystemEditor {
 
     toggleInput.addEventListener('change', () => {
       const isChecked = toggleInput.checked;
-      console.log(isChecked)
+      //console.log(isChecked)
       toggleLabel.style.backgroundColor = isChecked ? '#3b82f6' : '#374151';
       toggleThumb.style.left = isChecked ? '23px' : '3px';
       onChange(isChecked); // Call the onChange callback here
@@ -1214,7 +1214,7 @@ class ParticleSystemEditor {
     });
     // 2. Update Size Over Lifetime curve editor
     if (this.sizeCurveEditor && config.sizeOverTimeCurve) {
-      console.log('Restoring curve:', config.sizeOverTimeCurve, config.minValue, config.maxValue);
+      //console.log('Restoring curve:', config.sizeOverTimeCurve, config.minValue, config.maxValue);
       this.sizeCurveEditor.setCurveData(config.sizeOverTimeCurve, config.minValue, config.maxValue);
     } else {
       console.warn('Missing curve data!', config.sizeOverTimeCurve);
@@ -1250,7 +1250,7 @@ class ParticleSystemEditor {
       // Select the object
       this.editor.select(object);
 
-      console.log('Particle system created and ready!');
+      //console.log('Particle system created and ready!');
 
     } catch (error) {
       console.error('Error creating particle system:', error);
@@ -1264,7 +1264,7 @@ class ParticleSystemEditor {
       
       this.updateEditorValues();
       object.play();
-      console.log('Bound to ParticleSystem:', object);
+      //console.log('Bound to ParticleSystem:', object);
     } else {
       this.currentSystem = null;
     }
@@ -1282,7 +1282,7 @@ class ParticleSystemEditor {
   }
 
   showModal() {
-    console.log("Showing modal");
+    //console.log("Showing modal");
     this.container.dom.style.position = 'fixed';
     this.container.dom.style.flexDirection = 'column';
     this.container.dom.style.height = '70vh'; // Increased height for better usability

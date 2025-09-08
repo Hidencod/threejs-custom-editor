@@ -403,7 +403,7 @@ select:hover {
 	top: 32px;
 	left: 0;
 	right: 350px;
-	bottom: 30vh;
+	bottom: 0vh;
 }
 
 #viewport .Text {
@@ -416,7 +416,7 @@ select:hover {
 	top: 32px;
 	left: 0;
 	right: 350px;
-	bottom: 30vh;
+	bottom: 0vh;
 	opacity: 0.9;
 }
 
@@ -425,7 +425,7 @@ select:hover {
 	top: 32px;
 	left: 0;
 	right: 350px;
-	bottom: 30vh;
+	bottom: 0vh;
 }
 
 #menubar {

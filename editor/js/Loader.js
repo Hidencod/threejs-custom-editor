@@ -45,7 +45,7 @@ function Loader( editor ) {
 
 				if ( file ) {
 
-					console.log( 'Loading', url );
+					//console.log( 'Loading', url );
 
 					return URL.createObjectURL( file );
 
@@ -89,7 +89,7 @@ function Loader( editor ) {
 			const size = '(' + editor.utils.formatNumber( Math.floor( event.total / 1000 ) ) + ' KB)';
 			const progress = Math.floor( ( event.loaded / event.total ) * 100 ) + '%';
 
-			console.log( 'Loading', filename, size, progress );
+			//console.log( 'Loading', filename, size, progress );
 
 		} );
 
@@ -920,7 +920,7 @@ function Loader( editor ) {
 
 			if ( file ) {
 
-				console.log( 'Loading', url );
+				//console.log( 'Loading', url );
 
 				const blob = new Blob( [ file.buffer ], { type: 'application/octet-stream' } );
 				return URL.createObjectURL( blob );

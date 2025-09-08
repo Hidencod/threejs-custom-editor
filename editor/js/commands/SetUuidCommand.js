@@ -39,7 +39,6 @@ class SetUuidCommand extends Command {
 	}
 
 	toJSON() {
-
 		const output = super.toJSON( this );
 
 		output.oldUuid = this.oldUuid;
@@ -50,7 +49,7 @@ class SetUuidCommand extends Command {
 	}
 
 	fromJSON( json ) {
-
+		
 		super.fromJSON( json );
 
 		this.oldUuid = json.oldUuid;

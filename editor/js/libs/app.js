@@ -153,7 +153,7 @@ var APP = {
 			scene = value;
 			
 			scene.traverse(child => {
-				console.log(child)
+				
 				if (
 					child.userData &&
 					(child.userData.type === 'ParticleSystem' || child.userData.name === 'ParticleSystem')
@@ -176,7 +176,7 @@ var APP = {
 					// ✅ Replace in scene
 					parent.children[index] = particleSystem;
 					particleSystem.parent = parent;
-					console.log(particleSystem instanceof ParticleSystem)
+					
 					particleSystem.play();
 					// Optional: dispose of old child if needed
 				}

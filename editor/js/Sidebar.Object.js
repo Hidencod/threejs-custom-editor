@@ -111,6 +111,18 @@ function SidebarObject(editor) {
 
 	container.add(objectNameRow);
 
+	const objectIdRow = new UIRow();
+	const objectId = new UIInput().setWidth('150px').setFontSize('12px').onChange(function () {
+
+		editor.execute(new SetValueCommand(editor, editor.selected, 'id', objectId.getValue()));
+
+	});
+
+	objectIdRow.add(new UIText(strings.getKey('sidebar/object/id')).setClass('Label'));
+	objectIdRow.add(objectId);
+
+	container.add(objectIdRow);
+
 	// position
 
 	const objectPositionRow = new UIRow();
@@ -387,7 +399,6 @@ function SidebarObject(editor) {
 			if (!systemeditor) {
 				systemeditor = new ParticleSystemEditor(editor);
 			}
-			console.log('Before:', JSON.parse(JSON.stringify(selected.config)));
 			systemeditor.selectSystem(selected);
 			systemeditor.showModal();
 		} 
@@ -434,7 +445,7 @@ function SidebarObject(editor) {
 		const object = editor.selected;
 
 		let output = object.toJSON();
-
+		
 		try {
 
 			output = JSON.stringify(output, null, '\t');
@@ -737,7 +748,7 @@ function SidebarObject(editor) {
 
 	}
 	function updateParticleSystem(object) {
-		console.log(object)
+		//console.log(object)
 		if (object.config&&object.config.type&&object.config.type =="ParticleSystem") {
 			editParticleSystemRow.setDisplay('')
 
@@ -750,7 +761,7 @@ function SidebarObject(editor) {
 	// events
 
 	signals.objectSelected.add(function (object) {
-		console.log(object)
+		//console.log(object)
 		if (object !== null) {
 
 			container.setDisplay('block');
@@ -788,6 +799,7 @@ function SidebarObject(editor) {
 
 		objectUUID.setValue(object.uuid);
 		objectName.setValue(object.name);
+		objectId.setValue(object.userData && object.userData.objectId ? object.userData.objectId : '');
 
 		objectPositionX.setValue(object.position.x);
 		objectPositionY.setValue(object.position.y);

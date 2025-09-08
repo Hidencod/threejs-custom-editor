@@ -47,7 +47,7 @@ class SetValueCommand extends Command {
 	}
 
 	toJSON() {
-
+		console.log("Heyyy")
 		const output = super.toJSON( this );
 
 		output.objectUuid = this.object.uuid;
@@ -60,7 +60,6 @@ class SetValueCommand extends Command {
 	}
 
 	fromJSON( json ) {
-
 		super.fromJSON( json );
 
 		this.attributeName = json.attributeName;

@@ -228,6 +228,12 @@ Editor.prototype = {
 		this.signals.sceneGraphChanged.dispatch();
 
 	},
+	objectId: function (object, id) {
+
+		object.userData.objectId = id;
+		this.signals.sceneGraphChanged.dispatch();
+
+	},
 
 	removeObject: function ( object ) {
 
@@ -695,7 +701,7 @@ Editor.prototype = {
 		// 	ParticleSystem: ParticleSystem.fromJSON
 		// });
 		scene.traverse(child => {
-			console.log(child)
+			//console.log(child)
 			if (
 				child.userData &&
 				(child.userData.type === 'ParticleSystem' || child.userData.name === 'ParticleSystem')
@@ -718,7 +724,7 @@ Editor.prototype = {
 				// ✅ Replace in scene
 				parent.children[index] = particleSystem;
 				particleSystem.parent = parent;
-				console.log(particleSystem instanceof ParticleSystem)
+				//console.log(particleSystem instanceof ParticleSystem)
 				// Optional: dispose of old child if needed
 			}
 		});

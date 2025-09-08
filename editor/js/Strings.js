@@ -526,6 +526,7 @@ function Strings( config ) {
 			'sidebar/object/new': 'New',
 			'sidebar/object/uuid': 'UUID',
 			'sidebar/object/name': 'Name',
+			'sidebar/object/id': 'Object Id',
 			'sidebar/object/position': 'Position',
 			'sidebar/object/rotation': 'Rotation',
 			'sidebar/object/scale': 'Scale',

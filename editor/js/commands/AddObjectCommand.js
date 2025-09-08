@@ -39,9 +39,8 @@ class AddObjectCommand extends Command {
 	}
 
 	toJSON() {
-
 		const output = super.toJSON( this );
-
+		output.object.userData.objectId = this.object.userData.objectId;
 		output.object = this.object.toJSON();
 
 		return output;
@@ -49,7 +48,7 @@ class AddObjectCommand extends Command {
 	}
 
 	fromJSON( json ) {
-
+		
 		super.fromJSON( json );
 
 		this.object = this.editor.objectByUuid( json.object.object.uuid );
@@ -59,6 +58,9 @@ class AddObjectCommand extends Command {
 			const loader = new ObjectLoader();
 			this.object = loader.parse( json.object );
 
+		}
+		if (object.userData.objectId !== undefined) {
+			this.object.userData = json.object.userData.objectId;
 		}
 
 	}

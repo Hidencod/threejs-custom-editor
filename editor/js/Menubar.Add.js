@@ -6,10 +6,23 @@ import { AddObjectCommand } from './commands/AddObjectCommand.js';
 import { registerParticleSystem } from './ParticleSystem.Registery.js';
 import { ParticleSystem } from './ParticleSystem.js';
 
+
+let objectIdCounter = 1;
+
+function generateObjectId(baseName) {
+	return `${baseName.toLowerCase()}_${String(objectIdCounter++).padStart(3, '0')}`;
+}
+
+function initializeObject(object, baseName="Object") {
+	object.userData = object.userData || {};
+	object.userData.objectId = generateObjectId(baseName);
+	return object;
+}
+
 function MenubarAdd( editor ) {
 
 	const strings = editor.strings;
-	console.log(strings.getKey( 'menubar/add' ))
+	//console.log(strings.getKey( 'menubar/add' ))
 	const container = new UIPanel();
 	container.setClass( 'menu' );
 
@@ -59,7 +72,7 @@ function MenubarAdd( editor ) {
 			
 			registerParticleSystem(id, object);
 			editor.execute(new AddObjectCommand(editor, object));
-			console.log('Particle system added!');
+			//console.log('Particle system added!');
 			editor.select(object);
 
 		} catch (e) {
@@ -100,7 +113,7 @@ options.add(option);
 		const geometry = new THREE.BoxGeometry( 1, 1, 1, 1, 1, 1 );
 		const mesh = new THREE.Mesh( geometry, new THREE.MeshStandardMaterial() );
 		mesh.name = 'Box';
-
+		initializeObject(mesh, 'Box');
 		editor.execute( new AddObjectCommand( editor, mesh ) );
 
 	} );
@@ -117,7 +130,7 @@ options.add(option);
 		const material = new THREE.MeshStandardMaterial();
 		const mesh = new THREE.Mesh( geometry, material );
 		mesh.name = 'Capsule';
-
+		initializeObject(mesh, 'Capsule');
 		editor.execute( new AddObjectCommand( editor, mesh ) );
 
 	} );
@@ -133,7 +146,7 @@ options.add(option);
 		const geometry = new THREE.CircleGeometry( 1, 32, 0, Math.PI * 2 );
 		const mesh = new THREE.Mesh( geometry, new THREE.MeshStandardMaterial() );
 		mesh.name = 'Circle';
-
+		initializeObject(mesh, 'Circle');
 		editor.execute( new AddObjectCommand( editor, mesh ) );
 
 	} );
@@ -149,7 +162,7 @@ options.add(option);
 		const geometry = new THREE.CylinderGeometry( 1, 1, 1, 32, 1, false, 0, Math.PI * 2 );
 		const mesh = new THREE.Mesh( geometry, new THREE.MeshStandardMaterial() );
 		mesh.name = 'Cylinder';
-
+		initializeObject(mesh, 'Cylinder');
 		editor.execute( new AddObjectCommand( editor, mesh ) );
 
 	} );
@@ -165,7 +178,7 @@ options.add(option);
 		const geometry = new THREE.DodecahedronGeometry( 1, 0 );
 		const mesh = new THREE.Mesh( geometry, new THREE.MeshStandardMaterial() );
 		mesh.name = 'Dodecahedron';
-
+		initializeObject(mesh, 'Dodecahedron');
 		editor.execute( new AddObjectCommand( editor, mesh ) );
 
 	} );
@@ -181,7 +194,7 @@ options.add(option);
 		const geometry = new THREE.IcosahedronGeometry( 1, 0 );
 		const mesh = new THREE.Mesh( geometry, new THREE.MeshStandardMaterial() );
 		mesh.name = 'Icosahedron';
-
+		initializeObject(mesh, 'Icosahedron');
 		editor.execute( new AddObjectCommand( editor, mesh ) );
 
 	} );
@@ -197,7 +210,7 @@ options.add(option);
 		const geometry = new THREE.LatheGeometry();
 		const mesh = new THREE.Mesh( geometry, new THREE.MeshStandardMaterial( { side: THREE.DoubleSide } ) );
 		mesh.name = 'Lathe';
-
+		initializeObject(mesh, 'Lathe');
 		editor.execute( new AddObjectCommand( editor, mesh ) );
 
 	} );
@@ -213,7 +226,7 @@ options.add(option);
 		const geometry = new THREE.OctahedronGeometry( 1, 0 );
 		const mesh = new THREE.Mesh( geometry, new THREE.MeshStandardMaterial() );
 		mesh.name = 'Octahedron';
-
+		initializeObject(mesh, 'Octahedron');
 		editor.execute( new AddObjectCommand( editor, mesh ) );
 
 	} );
@@ -230,7 +243,7 @@ options.add(option);
 		const material = new THREE.MeshStandardMaterial();
 		const mesh = new THREE.Mesh( geometry, material );
 		mesh.name = 'Plane';
-
+		initializeObject(mesh, 'Plane');
 		editor.execute( new AddObjectCommand( editor, mesh ) );
 
 	} );
@@ -246,7 +259,7 @@ options.add(option);
 		const geometry = new THREE.RingGeometry( 0.5, 1, 32, 1, 0, Math.PI * 2 );
 		const mesh = new THREE.Mesh( geometry, new THREE.MeshStandardMaterial() );
 		mesh.name = 'Ring';
-
+		initializeObject(mesh, 'Ring');
 		editor.execute( new AddObjectCommand( editor, mesh ) );
 
 	} );
@@ -262,7 +275,7 @@ options.add(option);
 		const geometry = new THREE.SphereGeometry( 1, 32, 16, 0, Math.PI * 2, 0, Math.PI );
 		const mesh = new THREE.Mesh( geometry, new THREE.MeshStandardMaterial() );
 		mesh.name = 'Sphere';
-
+		initializeObject(mesh, 'Sphere');
 		editor.execute( new AddObjectCommand( editor, mesh ) );
 
 	} );
@@ -277,7 +290,7 @@ options.add(option);
 
 		const sprite = new THREE.Sprite( new THREE.SpriteMaterial() );
 		sprite.name = 'Sprite';
-
+		initializeObject(sprite, 'Sprite');
 		editor.execute( new AddObjectCommand( editor, sprite ) );
 
 	} );
@@ -293,7 +306,7 @@ options.add(option);
 		const geometry = new THREE.TetrahedronGeometry( 1, 0 );
 		const mesh = new THREE.Mesh( geometry, new THREE.MeshStandardMaterial() );
 		mesh.name = 'Tetrahedron';
-
+		initializeObject(mesh, 'Tetrahedron');
 		editor.execute( new AddObjectCommand( editor, mesh ) );
 
 	} );
@@ -309,7 +322,7 @@ options.add(option);
 		const geometry = new THREE.TorusGeometry( 1, 0.4, 12, 48, Math.PI * 2 );
 		const mesh = new THREE.Mesh( geometry, new THREE.MeshStandardMaterial() );
 		mesh.name = 'Torus';
-
+		initializeObject(mesh, 'Torus');
 		editor.execute( new AddObjectCommand( editor, mesh ) );
 
 	} );
@@ -325,7 +338,7 @@ options.add(option);
 		const geometry = new THREE.TorusKnotGeometry( 1, 0.4, 64, 8, 2, 3 );
 		const mesh = new THREE.Mesh( geometry, new THREE.MeshStandardMaterial() );
 		mesh.name = 'TorusKnot';
-
+		initializeObject(mesh, 'TorusKnot');
 		editor.execute( new AddObjectCommand( editor, mesh ) );
 
 	} );
@@ -348,7 +361,7 @@ options.add(option);
 		const geometry = new THREE.TubeGeometry( path, 64, 1, 8, false );
 		const mesh = new THREE.Mesh( geometry, new THREE.MeshStandardMaterial() );
 		mesh.name = 'Tube';
-
+		initializeObject(mesh, 'Tube');
 		editor.execute( new AddObjectCommand( editor, mesh ) );
 
 	} );
@@ -389,7 +402,7 @@ options.add(option);
 
 		const light = new THREE.AmbientLight( color );
 		light.name = 'AmbientLight';
-
+		initializeObject(light, 'AmbientLight');
 		editor.execute( new AddObjectCommand( editor, light ) );
 
 	} );
@@ -408,7 +421,7 @@ options.add(option);
 		const light = new THREE.DirectionalLight( color, intensity );
 		light.name = 'DirectionalLight';
 		light.target.name = 'DirectionalLight Target';
-
+		initializeObject(light, 'DirectionalLight');
 		light.position.set( 5, 10, 7.5 );
 
 		editor.execute( new AddObjectCommand( editor, light ) );
@@ -429,7 +442,7 @@ options.add(option);
 
 		const light = new THREE.HemisphereLight( skyColor, groundColor, intensity );
 		light.name = 'HemisphereLight';
-
+		initializeObject(light, 'HemisphereLight');
 		light.position.set( 0, 10, 0 );
 
 		editor.execute( new AddObjectCommand( editor, light ) );
@@ -450,7 +463,7 @@ options.add(option);
 
 		const light = new THREE.PointLight( color, intensity, distance );
 		light.name = 'PointLight';
-
+		initializeObject(light, 'PointLight');
 		editor.execute( new AddObjectCommand( editor, light ) );
 
 	} );
@@ -472,7 +485,7 @@ options.add(option);
 		const light = new THREE.SpotLight( color, intensity, distance, angle, penumbra );
 		light.name = 'SpotLight';
 		light.target.name = 'SpotLight Target';
-
+		initializeObject(light, 'SpotLight');
 		light.position.set( 5, 10, 7.5 );
 
 		editor.execute( new AddObjectCommand( editor, light ) );

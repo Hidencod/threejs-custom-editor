@@ -987,7 +987,7 @@ class ParticleSystem extends THREE.Object3D {
 
 
   static fromJSON(data) {
-    console.log(data);
+    //console.log(data);
     const config = data || {};
     const system = new ParticleSystem(config);
 
