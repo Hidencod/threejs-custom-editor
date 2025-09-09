@@ -26,11 +26,11 @@ class SetValueCommand extends Command {
 
 	execute() {
 		this.object[this.attributeName] = this.newValue;
-		if(this.attributeName=="objectId")
-		{
-			if(this.object.userData && this.object.userData.objectId)
+		if (this.attributeName === "objectId") {
+			// Now just set the value
 			this.object.userData.objectId = this.newValue;
 		}
+
 		
 		this.editor.signals.objectChanged.dispatch( this.object );
 		// this.editor.signals.sceneGraphChanged.dispatch();
