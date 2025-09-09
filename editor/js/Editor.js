@@ -701,7 +701,6 @@ Editor.prototype = {
 		// 	ParticleSystem: ParticleSystem.fromJSON
 		// });
 		scene.traverse(child => {
-			//console.log(child)
 			if (
 				child.userData &&
 				(child.userData.type === 'ParticleSystem' || child.userData.name === 'ParticleSystem')

@@ -25,8 +25,13 @@ class SetValueCommand extends Command {
 	}
 
 	execute() {
-
-		this.object[ this.attributeName ] = this.newValue;
+		this.object[this.attributeName] = this.newValue;
+		if(this.attributeName=="objectId")
+		{
+			if(this.object.userData && this.object.userData.objectId)
+			this.object.userData.objectId = this.newValue;
+		}
+		
 		this.editor.signals.objectChanged.dispatch( this.object );
 		// this.editor.signals.sceneGraphChanged.dispatch();
 
@@ -47,7 +52,6 @@ class SetValueCommand extends Command {
 	}
 
 	toJSON() {
-		console.log("Heyyy")
 		const output = super.toJSON( this );
 
 		output.objectUuid = this.object.uuid;

@@ -114,7 +114,7 @@ function SidebarObject(editor) {
 	const objectIdRow = new UIRow();
 	const objectId = new UIInput().setWidth('150px').setFontSize('12px').onChange(function () {
 
-		editor.execute(new SetValueCommand(editor, editor.selected, 'id', objectId.getValue()));
+		editor.execute(new SetValueCommand(editor, editor.selected, 'objectId', objectId.getValue()));
 
 	});
 
